@@ -42,9 +42,9 @@ ax1.errorbar(NC10['D13CH3D'],NC10['D12CH2D2'],xerr=NC10['cdse'],yerr=NC10['ddse'
             markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
 ax1.errorbar(NC10_ANME['D13CH3D'],NC10_ANME['D12CH2D2'],xerr=NC10_ANME['cdse'],yerr=NC10_ANME['ddse'], markersize=16,label=r'NC10+ANME', fmt='^', 
             markerfacecolor='blue', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
-ax1.errorbar(AeOM_m['D13CH3D'],AeOM_m['D12CH2D2'],xerr=AeOM_m['cdse'],yerr=AeOM_m['ddse'], markersize=12,label=r'AeOM (Li et al., 2024)', fmt='s', 
+ax1.errorbar(AeOM_m['D13CH3D'],AeOM_m['D12CH2D2'],xerr=AeOM_m['cdse'],yerr=AeOM_m['ddse'], markersize=12,label=r'AeOM (Li et al., 2024)', fmt='o', 
             markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-ax1.errorbar(AOM_P['D13CH3D'],AOM_P['D12CH2D2'],xerr=AOM_P['cdse'],yerr=AOM_P['ddse'], markersize=12,label=r'AOM (Liu et al., 2023)', fmt='o', 
+ax1.errorbar(AOM_P['D13CH3D'],AOM_P['D12CH2D2'],xerr=AOM_P['cdse'],yerr=AOM_P['ddse'], markersize=12,label=r'AOM (Liu et al., 2023)', fmt='s', 
             markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
 
 # Bulk isotope
@@ -52,9 +52,9 @@ ax2.errorbar(NC10['d13C'],NC10['dD'],xerr=NC10['cse'],yerr=NC10['dse'], markersi
             markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
 ax2.errorbar(NC10_ANME['d13C'],NC10_ANME['dD'],xerr=NC10_ANME['cse'],yerr=NC10_ANME['dse'], markersize=16,label=r'NC10+ANME', fmt='^', 
             markerfacecolor='blue', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
-ax2.errorbar(AeOM_m['d13C'],AeOM_m['dD'],xerr=AeOM_m['cse'],yerr=AeOM_m['dse'], markersize=12,label=r'AeOM (Li et al., 2024)', fmt='s', 
+ax2.errorbar(AeOM_m['d13C'],AeOM_m['dD'],xerr=AeOM_m['cse'],yerr=AeOM_m['dse'], markersize=12,label=r'AeOM (Li et al., 2024)', fmt='o', 
             markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-ax2.errorbar(AOM_P['d13C'],AOM_P['dD'],xerr=AOM_P['cse'],yerr=AOM_P['dse'], markersize=12,label=r'AOM (Liu et al., 2023)', fmt='o', 
+ax2.errorbar(AOM_P['d13C'],AOM_P['dD'],xerr=AOM_P['cse'],yerr=AOM_P['dse'], markersize=12,label=r'AOM (Liu et al., 2023)', fmt='s', 
             markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
 
 ax1.legend(fontsize=24)
@@ -123,9 +123,9 @@ ax3.errorbar(NC10['D13CH3D'],NC10['D12CH2D2'],xerr=NC10['cdse'],yerr=NC10['ddse'
             markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
 ax3.errorbar(NC10_ANME['D13CH3D'],NC10_ANME['D12CH2D2'],xerr=NC10_ANME['cdse'],yerr=NC10_ANME['ddse'], markersize=16,label=r'NC10+ANME', fmt='^', 
             markerfacecolor='blue', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
-ax3.errorbar(AeOM_m['D13CH3D'],AeOM_m['D12CH2D2'],xerr=AeOM_m['cdse'],yerr=AeOM_m['ddse'], markersize=12,label=r'AeOM (Li et al., 2024)', fmt='s', 
+ax3.errorbar(AeOM_m['D13CH3D'],AeOM_m['D12CH2D2'],xerr=AeOM_m['cdse'],yerr=AeOM_m['ddse'], markersize=12,label=r'AeOM (Li et al., 2024)', fmt='o', 
             markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-ax3.errorbar(AOM_P['D13CH3D'],AOM_P['D12CH2D2'],xerr=AOM_P['cdse'],yerr=AOM_P['ddse'], markersize=12,label=r'AOM (Liu et al., 2023)', fmt='o', 
+ax3.errorbar(AOM_P['D13CH3D'],AOM_P['D12CH2D2'],xerr=AOM_P['cdse'],yerr=AOM_P['ddse'], markersize=12,label=r'AOM (Liu et al., 2023)', fmt='s', 
             markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
 ax3.legend(fontsize=24)
 ax3.set_xlabel('$\Delta^{13}$CH$_3$D (\u2030)', fontdict = font_labels)
@@ -141,9 +141,9 @@ ax4.errorbar(NC10['d13C'],NC10['dD'],xerr=NC10['cse'],yerr=NC10['dse'], markersi
             markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
 ax4.errorbar(NC10_ANME['d13C'],NC10_ANME['dD'],xerr=NC10_ANME['cse'],yerr=NC10_ANME['dse'], markersize=16,label=r'NC10+ANME', fmt='^', 
             markerfacecolor='blue', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
-ax4.errorbar(AeOM_m['d13C'],AeOM_m['dD'],xerr=AeOM_m['cse'],yerr=AeOM_m['dse'], markersize=10,label=r'AeOM (Li et al., 2024)', fmt='s', 
-            markerfacecolor='gray', markeredgecolor='gray',markeredgewidth=2.5, ecolor='gray', elinewidth=2.5, zorder=-1)
-ax4.errorbar(AOM_P['d13C'],AOM_P['dD'],xerr=AOM_P['cse'],yerr=AOM_P['dse'], markersize=12,label=r'AOM (Liu et al., 2023)', fmt='o', 
+ax4.errorbar(AeOM_m['d13C'],AeOM_m['dD'],xerr=AeOM_m['cse'],yerr=AeOM_m['dse'], markersize=10,label=r'AeOM (Li et al., 2024)', fmt='o', 
+            markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+ax4.errorbar(AOM_P['d13C'],AOM_P['dD'],xerr=AOM_P['cse'],yerr=AOM_P['dse'], markersize=12,label=r'AOM (Liu et al., 2023)', fmt='s', 
             markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
 ax4.set_xlabel('$\delta^{13}$C (\u2030)', fontdict = font_labels)
 ax4.set_ylabel('$\delta$D (\u2030)', fontdict = font_labels)
