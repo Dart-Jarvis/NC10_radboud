@@ -1,6 +1,6 @@
 ﻿Sample,Description,d13C,cse,dD,dse,D13CH3D,cdse,D12CH2D2,ddse,Notes,Block # for D13CH3D,Block # for D12CH2D2,f,fse,label
-This study,Radboud-CH4tank-B,-41.108,0.03,-169.12,0.031,3.131,0.151,7.038,0.71,,16,35,1,,1
-This study,Radboud-NC10(R10)-CtrlC,-41.098,0.04,-168.932,0.032,2.495,0.137,7.722,0.791,,20,31,1,,1
+This study,Radboud-CH4tank-B,-41.108,0.03,-169.12,0.031,3.131,0.151,7.038,0.71,,16,35,1,,0t
+This study,Radboud-NC10(R10)-CtrlC,-41.098,0.04,-168.932,0.032,2.495,0.137,7.722,0.791,,20,31,1,,0
 This study,Radboud-NC10(R10)-T1B,-35.813,0.021,-120.818,0.032,1.329,0.151,4.155,0.86,,20,27,0.858622856,,1
 This study,Radboud-NC10(R10)-T3C,-30.752,0.005,-81.771,0.031,0.052,0.143,-4.595,0.622,,20,40,0.660096132,,1
 This study,Radboud-NC10(R10)-T4A,-27.158,0.014,-52.897,0.027,-0.413,0.174,-7.869,0.577,,17,40,0.53163802,,1
@@ -28,11 +28,11 @@ Li et al. 2024 GCA,Mcaps_21C_T5_C3_JL_Dartmouth,-7.227,0.004,128.196,0.032,-8.19
 ,,,,,,,,,,,,,,,
 "Liu et al., 2023, GCA",Experiment 1_High sulfate_Replicate 1_T0*,-37.571,0.003,-144.844,0.021,2.854,0.124,7.514,0.658,,,,,,AOM_P
 "Liu et al., 2023, GCA",Experiment 1_High sulfate_Replicate 1_T1,-36.051,0.003,-87.085,0.018,9.819,0.101,25.823,0.508,,,,,,AOM_P
-"Liu et al., 2023, GCA",Experiment 1_High sulfate_Replicate 1_T2,-33.880,0.004,-42.708,0.019,11.970,0.110,39.489,0.492,,,,,,AOM_P
+"Liu et al., 2023, GCA",Experiment 1_High sulfate_Replicate 1_T2,-33.88,0.004,-42.708,0.019,11.97,0.11,39.489,0.492,,,,,,AOM_P
 "Liu et al., 2023, GCA",Experiment 1_High sulfate_Replicate 2_T0*,-37.571,0.003,-144.844,0.021,2.854,0.124,7.514,0.658,,,,,,AOM_P
-"Liu et al., 2023, GCA",Experiment 1_High sulfate_Replicate 2_T1,-35.726,0.004,-71.437,0.020,9.434,0.105,31.199,0.521,,,,,,AOM_P
+"Liu et al., 2023, GCA",Experiment 1_High sulfate_Replicate 2_T1,-35.726,0.004,-71.437,0.02,9.434,0.105,31.199,0.521,,,,,,AOM_P
 "Liu et al., 2023, GCA",Experiment 1_High sulfate_Replicate 2_T2,-33.664,0.004,-25.316,0.023,13.969,0.116,45.519,0.557,,,,,,AOM_P
-"Liu et al., 2023, GCA",Experiment 2_High sulfate_T0**,-37.875,0.003,-144.542,0.020,3.038,0.179,7.502,0.652,,,,,,AOM_P
+"Liu et al., 2023, GCA",Experiment 2_High sulfate_T0**,-37.875,0.003,-144.542,0.02,3.038,0.179,7.502,0.652,,,,,,AOM_P
 "Liu et al., 2023, GCA",Experiment 2_High sulfate_T1,-33.806,0.003,-32.455,0.022,12.671,0.113,40.745,0.538,,,,,,AOM_P
-"Liu et al., 2023, GCA",Experiment 2_High sulfate_T2,-31.504,0.003,10.831,0.021,16.111,0.147,52.967,0.620,,,,,,AOM_P
-"Liu et al., 2023, GCA",Experiment 2_High sulfate_T3,-28.234,0.005,50.883,0.023,19.477,0.254,65.080,0.669,,,,,,AOM_P
+"Liu et al., 2023, GCA",Experiment 2_High sulfate_T2,-31.504,0.003,10.831,0.021,16.111,0.147,52.967,0.62,,,,,,AOM_P
+"Liu et al., 2023, GCA",Experiment 2_High sulfate_T3,-28.234,0.005,50.883,0.023,19.477,0.254,65.08,0.669,,,,,,AOM_P

@@ -25,6 +25,7 @@ plt.rcParams['savefig.facecolor']='white'
 data = pd.read_csv('isotope_data.csv')
 equib = pd.read_csv('equib.csv')
 
+T0=data[data['label']=='0'] # T0, tank gas and controls
 NC10=data[data['label']=='1'] # NC10
 NC10_ANME=data[data['label']=='2'] # NC10+ANME
 AeOM_P=data[data['label']=='P'] # Previous data from Li et al., 2024
@@ -37,7 +38,8 @@ ax1.plot(equib['D13CH3D'],equib['D12CH2D2'],'-k', label = 'Equilibrium', linewid
 for i in range(len(equib)):
     if equib['p'].iloc[i]==1:
         ax1.scatter(equib['D13CH3D'].iloc[i], equib['D12CH2D2'].iloc[i],color='black',s=60)
-
+ax1.errorbar(T0['D13CH3D'],T0['D12CH2D2'],xerr=T0['cdse'],yerr=T0['ddse'], markersize=24,label=r'T0', fmt='*', 
+            markerfacecolor='purple', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
 ax1.errorbar(NC10['D13CH3D'],NC10['D12CH2D2'],xerr=NC10['cdse'],yerr=NC10['ddse'], markersize=16,label=r'NC10', fmt='o', 
             markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
 ax1.errorbar(NC10_ANME['D13CH3D'],NC10_ANME['D12CH2D2'],xerr=NC10_ANME['cdse'],yerr=NC10_ANME['ddse'], markersize=16,label=r'NC10+ANME', fmt='^', 
@@ -48,6 +50,8 @@ ax1.errorbar(AOM_P['D13CH3D'],AOM_P['D12CH2D2'],xerr=AOM_P['cdse'],yerr=AOM_P['d
             markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
 
 # Bulk isotope
+ax2.errorbar(T0['d13C'],T0['dD'],xerr=T0['cse'],yerr=T0['dse'], markersize=24,label=r'T0', fmt='*', 
+            markerfacecolor='purple', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
 ax2.errorbar(NC10['d13C'],NC10['dD'],xerr=NC10['cse'],yerr=NC10['dse'], markersize=16,label=r'NC10', fmt='o', 
             markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
 ax2.errorbar(NC10_ANME['d13C'],NC10_ANME['dD'],xerr=NC10_ANME['cse'],yerr=NC10_ANME['dse'], markersize=16,label=r'NC10+ANME', fmt='^', 
@@ -119,6 +123,8 @@ c=np.arange(0.2,1.1,0.1)
 ax3.plot(equib['D13CH3D'],equib['D12CH2D2'],'-k', label = 'Equilibrium', linewidth = 3.5, markersize = 15)
 for i in range(len(f)):
     ax3.plot(Dcd[i,:],Ddd[i,:], 'ro--', linewidth=3.0, alpha=c[i])
+ax3.errorbar(T0['D13CH3D'],T0['D12CH2D2'],xerr=T0['cdse'],yerr=T0['ddse'], markersize=24,label=r'T0', fmt='*', 
+            markerfacecolor='purple', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
 ax3.errorbar(NC10['D13CH3D'],NC10['D12CH2D2'],xerr=NC10['cdse'],yerr=NC10['ddse'], markersize=16,label=r'NC10', fmt='o', 
             markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
 ax3.errorbar(NC10_ANME['D13CH3D'],NC10_ANME['D12CH2D2'],xerr=NC10_ANME['cdse'],yerr=NC10_ANME['ddse'], markersize=16,label=r'NC10+ANME', fmt='^', 
@@ -137,6 +143,8 @@ ax3.tick_params(which='minor',direction='out', top=True, right=True, length=4, w
 # Bulk isotope
 for i in range(len(f)):
     ax4.plot(dC[i,:],dD[i,:], 'ro--', linewidth=3.0, alpha=c[i])
+ax4.errorbar(T0['d13C'],T0['dD'],xerr=T0['cse'],yerr=T0['dse'], markersize=24,label=r'T0', fmt='*', 
+            markerfacecolor='purple', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
 ax4.errorbar(NC10['d13C'],NC10['dD'],xerr=NC10['cse'],yerr=NC10['dse'], markersize=16,label=r'NC10', fmt='o', 
             markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
 ax4.errorbar(NC10_ANME['d13C'],NC10_ANME['dD'],xerr=NC10_ANME['cse'],yerr=NC10_ANME['dse'], markersize=16,label=r'NC10+ANME', fmt='^', 
