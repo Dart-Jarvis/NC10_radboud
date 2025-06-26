@@ -91,8 +91,8 @@ dD0=-168.932
 Dcd0=2.495
 Ddd0=7.722
 # mixing of two processes
-f=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
-r=np.arange(0.4,1.1,0.1)
+r=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+f=np.arange(0.4,1.1,0.1)
 aC_mix=np.zeros(len(f))
 aD_mix=np.zeros(len(f))
 aCD_mix=np.zeros(len(f))
@@ -104,16 +104,32 @@ dD=np.zeros((len(f),len(r)))
 Dcd=np.zeros((len(f),len(r)))
 Ddd=np.zeros((len(f),len(r)))
 
-for i in range(len(f)):
-    aC_mix[i]=aC_anme_hs*(1-f[i])+aC_nc10*f[i]
-    aD_mix[i]=aD_anme_hs*(1-f[i])+aD_nc10*f[i]
-    aCD_mix[i]=aCD_anme_hs*(1-f[i])+aCD_nc10*f[i]
-    aDD_mix[i]=aDD_anme_hs*(1-f[i])+aDD_nc10*f[i]
-    for j in range(len(r)):
-        dC[i,j] = r[j]**(aC_mix[i]-1)*(dC0+1000)-1000
-        dD[i,j] = r[j]**(aD_mix[i]-1)*(dD0+1000)-1000
-        Dcd[i,j] = Dcd0+1000*(aCD_mix[i]-aC_mix[i]-aD_mix[i]+1)*np.log(r[j])
-        Ddd[i,j] = Ddd0+1000*(aDD_mix[i]-2*aD_mix[i]+1)*np.log(r[j])
+# Calculate the mixing
+# for i in range(len(f)):
+#     aC_mix[i]=aC_anme_hs*(1-f[i])+aC_nc10*f[i]
+#     aD_mix[i]=aD_anme_hs*(1-f[i])+aD_nc10*f[i]
+#     aCD_mix[i]=aCD_anme_hs*(1-f[i])+aCD_nc10*f[i]
+#     aDD_mix[i]=aDD_anme_hs*(1-f[i])+aDD_nc10*f[i]
+#     for j in range(len(r)):
+#         dC[i,j] = r[j]**(aC_mix[i]-1)*(dC0+1000)-1000
+#         dD[i,j] = r[j]**(aD_mix[i]-1)*(dD0+1000)-1000
+#         Dcd[i,j] = Dcd0+1000*(aCD_mix[i]-aC_mix[i]-aD_mix[i]+1)*np.log(r[j])
+#         Ddd[i,j] = Ddd0+1000*(aDD_mix[i]-2*aD_mix[i]+1)*np.log(r[j])
+
+# Assume pMMO oxidized 1-f1 methane and mcr oxidize f1-f2 methane
+for i in range(len(r)):
+    for j in range(len(f)):
+    # Calculate f1, f2 first, it depends on the relative porportions of mcr and pMMO oxidized methane (f[i])
+    # as well as the total methane oxidized (r[j])
+    # r=1 --> total mcr oxidation, r=0 --> total pMMO oxidation
+        f1=1-(1-f[j])*r[i]
+        f2=f[j]/f1
+        dC[i,j] = ((dC0+1000)*f1**(aC_anme_hs-1))*f2**(aC_nc10-1)-1000
+        dD[i,j] = ((dD0+1000)*f1**(aD_anme_hs-1))*f2**(aD_nc10-1)-1000
+        Dcd[i,j] = Dcd0+1000*(aCD_anme_hs-aC_anme_hs-aD_anme_hs+1)*np.log(f1)+1000*(aCD_nc10-aC_nc10-aD_nc10+1)*np.log(f2)
+        Ddd[i,j] = Ddd0+1000*(aDD_anme_hs-2*aD_anme_hs+1)*np.log(f1)+1000*(aDD_nc10-2*aD_nc10+1)*np.log(f2)
+
+
 
 fig3,ax3=plt.subplots(figsize=(12,12))
 fig4,ax4=plt.subplots(figsize=(12,12))
@@ -141,7 +157,7 @@ ax3.xaxis.set_minor_locator(MultipleLocator(2))
 ax3.tick_params(which='major',direction='out', top=True, right=True, length=8, width=2.5, labelsize=32)
 ax3.tick_params(which='minor',direction='out', top=True, right=True, length=4, width=2.0, labelsize=32)
 # Bulk isotope
-for i in range(len(f)):
+for i in range(len(r)):
     ax4.plot(dC[i,:],dD[i,:], 'ro--', linewidth=3.0, alpha=c[i])
 ax4.errorbar(T0['d13C'],T0['dD'],xerr=T0['cse'],yerr=T0['dse'], markersize=24,label=r'T0', fmt='*', 
             markerfacecolor='purple', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
@@ -172,7 +188,7 @@ ax5.errorbar(NC10_ANME['f'],NC10_ANME['D13CH3D'], xerr=NC10_ANME['fse'], yerr=NC
             markerfacecolor='blue', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
 ax5.errorbar(AeOM_m['f'][AeOM_m['f']>=0.4],AeOM_m['D13CH3D'], xerr=AeOM_m['fse'], yerr=AeOM_m['cdse'], markersize=10,label=r'AeOM (Li et al., 2024)', fmt='s', 
             markerfacecolor='gray', markeredgecolor='gray',markeredgewidth=2.5, ecolor='gray', elinewidth=2.5, zorder=-1)
-for i in range(len(f)):
+for i in range(len(r)):
     ax5.plot(r,Dcd[i,:], 'ro--', linewidth=3.0, alpha=c[i])
 ax5.axes.invert_xaxis()
 ax5.set_ylabel('$\Delta^{13}$CH$_3$D (\u2030)', fontdict = font_labels)
@@ -186,7 +202,7 @@ ax6.errorbar(NC10_ANME['f'],NC10_ANME['D12CH2D2'], xerr=NC10_ANME['fse'], yerr=N
             markerfacecolor='blue', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
 ax6.errorbar(AeOM_m['f'][AeOM_m['f']>=0.4],AeOM_m['D12CH2D2'], xerr=AeOM_m['fse'], yerr=AeOM_m['ddse'], markersize=10,label=r'AeOM (Li et al., 2024)', fmt='s', 
             markerfacecolor='gray', markeredgecolor='gray',markeredgewidth=2.5, ecolor='gray', elinewidth=2.5, zorder=-1)
-for i in range(len(f)):
+for i in range(len(r)):
     ax6.plot(r,Ddd[i,:], 'ro--', linewidth=3.0, alpha=c[i])
 ax6.axes.invert_xaxis()
 ax6.set_ylabel('$\Delta^{12}$CH$_2$D$_2$ (\u2030)', fontdict = font_labels)
@@ -214,7 +230,7 @@ ax8.errorbar(NC10_ANME['f'],NC10_ANME['dD'], xerr=NC10_ANME['fse'], yerr=NC10_AN
             markerfacecolor='blue', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
 ax8.errorbar(AeOM_m['f'][AeOM_m['f']>=0.4],AeOM_m['dD'], xerr=AeOM_m['fse'], yerr=AeOM_m['dse'], markersize=10,label=r'AeOM (Li et al., 2024)', fmt='s', 
             markerfacecolor='gray', markeredgecolor='gray',markeredgewidth=2.5, ecolor='gray', elinewidth=2.5, zorder=-1)
-for i in range(len(f)):
+for i in range(len(r)):
     ax8.plot(r,dD[i,:], 'ro--', linewidth=3.0, alpha=c[i])
 ax8.axes.invert_xaxis()
 ax8.set_ylabel('$\delta$D (\u2030)', fontdict = font_labels)
