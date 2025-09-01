@@ -16,6 +16,11 @@ aD_pmo=0.8019
 aCD_pmo=0.7842724	
 aDD_pmo=0.629614
 
+aC_smo_model=0.98247	
+aD_smo_model=0.70350
+aCD_smo_model=0.69051	
+aDD_smo_model=0.47326
+
 # Define relative rates rpmmo/rmcr
 r=[0, 0.2, 0.4, 0.6, 0.8, 1.0]
 

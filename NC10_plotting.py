@@ -93,6 +93,12 @@ aD_nc10=0.8019
 aCD_nc10=0.7843	
 aDD_nc10=0.6296
 
+# sMMO ab initio model
+aC_smo_model=0.98247	
+aD_smo_model=0.70350
+aCD_smo_model=0.69051	
+aDD_smo_model=0.47326
+
 # -41.381	0.011	-169.497	0.051	3.127	0.193	8.286	0.657
 dC0=-41.381
 dD0=-169.497

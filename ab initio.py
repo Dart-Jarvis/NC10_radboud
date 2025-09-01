@@ -59,10 +59,11 @@ def calc_rpfr(iso1,iso2,iso3,iso4):
     kb=1.380649*10**(-23) # Boltzmann constant, J/K 
     # Identify the imaginary frequency ratio
     img_freq_ratio=ts_freq[0,iso1]/ts_freq[0,iso2]
-    # Calculate the tunneling factor
+    # Calculate the tunneling factor, set it at 1 now
     tun=1.0
-    # Calculate delta E
+    # Calculate delta E, make sure to convert the frequency to Hz first
     deltaE=0.5*h*c*sum(ts_freq[:,iso1])-0.5*h*c*sum(ts_freq[:,iso2])-(0.5*h*c*sum(ch4_freq[:,iso3])-0.5*h*c*sum(ch4_freq[:,iso4]))
+    # Calculate RPFR
     rpfr=img_freq_ratio*tun*ts_rpf[iso1]/ts_rpf[iso2]*ch4_rpf[iso4]/ch4_rpf[iso3]*math.exp(-deltaE/(kb*T))
     return rpfr
 
@@ -73,4 +74,9 @@ ch4_rpf=calc_rpf(ch4_freq,T)
 a13=calc_rpfr(16,0,5,0) # 0.9713 at 27 oC, from Li et al., 2024, GCA
 a2H=1/4*(calc_rpfr(1,0,1,0)+calc_rpfr(2,0,1,0)
          +calc_rpfr(3,0,1,0)+calc_rpfr(4,0,1,0))# Primary + secondary isotope effects
-print(a13,"/n",a2H)
+aQH3D=1/4*(calc_rpfr(17,0,6,0)+calc_rpfr(18,0,6,0)
+           +calc_rpfr(19,0,6,0)+calc_rpfr(20,0,6,0))
+aCH2D2=1/6*(calc_rpfr(5,0,2,0)+calc_rpfr(6,0,2,0)+calc_rpfr(7,0,2,0)
+            +calc_rpfr(8,0,2,0)+calc_rpfr(9,0,2,0)+calc_rpfr(10,0,2,0))
+
+print(a13,"\n",a2H, "\n", aQH3D, "\n", aCH2D2)
