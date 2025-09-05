@@ -5,6 +5,7 @@ import math
 
 ts_freq_df=pd.read_csv("smmo_frequency_ts.csv")
 ch4_freq_df=pd.read_csv("smmo_frequency_ch4.csv")
+ch4_freq_df2=pd.read_csv("OH_model.csv") # Calculation results from Haghneghdar et al., 2017
 
 # Extract frequencies of isotopologues
 iso=["CHHHH","CHHHD","CHHDH","CHDHH","CDHHH",
@@ -17,6 +18,9 @@ iso=["CHHHH","CHHHD","CHHDH","CHDHH","CDHHH",
 
 iso_ch4=["CHHHH","CHHHD","CHHDD","CHDDD","CDDDD",
          "QHHHH","QHHHD","QHHDD","QHDDD","QDDDD"]
+
+iso_ch4_2=["CHHHH","CHHHD","CHHDD",
+         "QHHHH","QHHHD"]
 
 def read_freq(df,iso_name):
     l=0
@@ -34,6 +38,7 @@ def read_freq(df,iso_name):
 
 ts_freq=read_freq(ts_freq_df,iso)
 ch4_freq=read_freq(ch4_freq_df,iso_ch4)
+ch4_freq2=read_freq(ch4_freq_df2,iso_ch4_2)
 
 T=273.15+30 # Temperature in K
 # Calculate the partition function from Lasaga 1991, GRL
@@ -58,6 +63,18 @@ def calc_rpf(freq, T, img):
         rpf[i]=rpf_temp
     return rpf
 
+# Calculate the tunneling factor kappa, based on Wigner correction
+def calc_kappa(freq,T):
+    kappa=np.zeros(freq.shape[1])
+    hbar=6.62607015*10**(-34)/(2*math.pi)
+    c= 2.99792458e10   # speed of light in cm/s
+    kb=1.380649*10**(-23) # Boltzmann constant, J/K
+    for i in range(len(kappa)):
+        kappa[i]=1+(hbar*2*math.pi*c*freq[0,i]/kb/T)**2/24
+    return kappa
+
+kappa_ts=calc_kappa(ts_freq,T)
+
 # Calculate the KIE between two isotopologues, iso2 is normally CH4, iso2=0;
 # iso3 and 4 are for CH4 isotopologues, iso4 is normally CH4, iso4=0
 def calc_rpfr(iso1,iso2,iso3,iso4): 
@@ -68,7 +85,7 @@ def calc_rpfr(iso1,iso2,iso3,iso4):
     # Identify the imaginary frequency ratio
     img_freq_ratio=ts_freq[0,iso1]/ts_freq[0,iso2]
     # Calculate the tunneling factor, set it at 1 now
-    tun=1.0
+    tun=kappa_ts[iso1]/kappa_ts[iso2]
     # Calculate delta E, make sure to convert the frequency to Hz first
     deltaE=0.5*h*c*sum(ts_freq[1:,iso1])-0.5*h*c*sum(ts_freq[1:,iso2])-(0.5*h*c*sum(ch4_freq[:,iso3])-0.5*h*c*sum(ch4_freq[:,iso4]))
     # Calculate RPFR
@@ -77,6 +94,7 @@ def calc_rpfr(iso1,iso2,iso3,iso4):
 
 ts_rpf=calc_rpf(ts_freq,T,1) # Has imaginary frequency for transition state
 ch4_rpf=calc_rpf(ch4_freq,T,0) # No imaginary frequency for ch4 molecule
+ch4_rpf2=calc_rpf(ch4_freq2,T,0)
 
 # Calculate carbon isotope fractionation
 a13=calc_rpfr(16,0,5,0) # 0.9713 at 27 oC, from Li et al., 2024, GCA

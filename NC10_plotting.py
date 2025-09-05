@@ -101,19 +101,26 @@ aCD_nc10=0.7843
 aDD_nc10=0.6296
 
 # sMMO ab initio model
-aC_smo_model=0.987583
-aD_smo_model=0.743150
-aCD_smo_model=0.733659	
-aDD_smo_model=0.512047
+aC_smo_model=0.9871644
+aD_smo_model=0.7271113
+aCD_smo_model=0.7175155	
+aDD_smo_model=0.4857025
 
-# -41.381	0.011	-169.497	0.051	3.127	0.193	8.286	0.657
-dC0=-41.381
-dD0=-169.497
-Dcd0=3.127
-Ddd0=8.286
+# The isotope fractionation factors in previous studies
+# Li et al., 2024, 37C, 27C, 21C, Wang et al., 2016 (30 oC, 37 oC), Krause et al., 2022
+alphas=np.array([[aC_nc10,aC_smo_model, 0.9671, 0.9713, 0.9757, 0.988, 0.978, 0.98485],
+        [aD_nc10,aD_smo_model,0.6967, 0.7452, 0.7742, 0.8950,0.7980,0.7265],
+        [aCD_nc10,aCD_smo_model,0.6716, 0.7249, 0.7580, 0.8847,0.7804,0.7141],
+        [aDD_nc10,aDD_smo_model,0.4309, 0.5291, 0.5841, NaN, NaN, 0.4757]])
+
+# T0 -41.098	0.04	-168.932	0.032	2.495	0.137	7.722	0.791 
+dC0=-41.098
+dD0=-168.932
+Dcd0=2.495
+Ddd0=7.722
 # mixing of two processes
 r=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
-f=np.arange(0.2,1.1,0.1)
+f=np.arange(0.4,1.1,0.1)
 # aC_mix=np.zeros(len(f))
 # aD_mix=np.zeros(len(f))
 # aCD_mix=np.zeros(len(f))
@@ -263,6 +270,22 @@ plt.yticks(fontsize=16)
 plt.grid(axis='y', linestyle='--', alpha=0.5)
 plt.tight_layout()
 plt.show()
+
+series_name=[r"$^{13}\alpha$",r"$^{D}\alpha$",r"$\Delta^{13}$CH$_3$D",r"$\Delta^{12}$CH$_2$D$_2$"]
+fig9,ax9=plt.subplots(figsize=(8,5))
+for i in range(alphas.shape[1]):
+    if i==0: # NC10 data
+        ax9.scatter(series_name,alphas[:,i],color="orange",edgecolors="black",s=160,zorder=3)
+    if i==1:
+        ax9.scatter(series_name,alphas[:,i],color="red",edgecolors="black",s=160,marker="D", zorder=2)
+    else:
+        ax9.scatter(series_name,alphas[:,i],color="white",edgecolors="black",marker="o", s=100)
+
+ax9.set_ylim([0.38,1.05])
+ax9.set_ylabel("Fractionation factors",fontsize=20)
+ax9.tick_params(which='major',direction='out', top=True, right=True, length=8, width=2.5, labelsize=24)
+ax9.tick_params(which='minor',direction='out', top=True, right=True, length=4, width=2.0, labelsize=24)
+
 
 if mask["save_fig"]==1:
     fig1.savefig('clumped_sum.pdf', bbox_inches='tight')
