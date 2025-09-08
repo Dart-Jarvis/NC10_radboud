@@ -106,12 +106,18 @@ aD_smo_model=0.7271113
 aCD_smo_model=0.7175155	
 aDD_smo_model=0.4857025
 
+# sMMO ab initio model, no Wigner correction
+aC_smo_model_nc=0.9875826748616653 
+aD_smo_model_nc= 0.7431504785710069 
+aCD_smo_model_nc= 0.7336593668868868 
+aDD_smo_model_nc= 0.512046881532376
+
 # The isotope fractionation factors in previous studies
 # Li et al., 2024, 37C, 27C, 21C, Wang et al., 2016 (30 oC, 37 oC), Krause et al., 2022
-alphas=np.array([[aC_nc10,aC_smo_model, 0.9671, 0.9713, 0.9757, 0.988, 0.978, 0.98485],
-        [aD_nc10,aD_smo_model,0.6967, 0.7452, 0.7742, 0.8950,0.7980,0.7265],
-        [aCD_nc10,aCD_smo_model,0.6716, 0.7249, 0.7580, 0.8847,0.7804,0.7141],
-        [aDD_nc10,aDD_smo_model,0.4309, 0.5291, 0.5841, NaN, NaN, 0.4757]])
+alphas=np.array([[aC_nc10,aC_smo_model,aC_smo_model_nc, 0.9671, 0.9713, 0.9757, 0.988, 0.978, 0.98485],
+        [aD_nc10,aD_smo_model,aD_smo_model_nc,0.6967, 0.7452, 0.7742, 0.8950,0.7980,0.7265],
+        [aCD_nc10,aCD_smo_model,aCD_smo_model_nc,0.6716, 0.7249, 0.7580, 0.8847,0.7804,0.7141],
+        [aDD_nc10,aDD_smo_model,aDD_smo_model_nc,0.4309, 0.5291, 0.5841, NaN, NaN, 0.4757]])
 
 # T0 -41.098	0.04	-168.932	0.032	2.495	0.137	7.722	0.791 
 dC0=-41.098
@@ -131,8 +137,8 @@ dC=np.zeros((len(r),len(f)))
 dD=np.zeros((len(r),len(f)))
 Dcd=np.zeros((len(r),len(f)))
 Ddd=np.zeros((len(r),len(f)))
-# Results from ab initio calculations
-smmo_m=np.zeros((len(f),4))
+# Results from ab initio calculations, 0-3 are corrected, 4-7 are not corrected
+smmo_m=np.zeros((len(f),8))
 
 # Assume pMMO oxidized 1-f1 methane and mcr oxidize f1-f2 methane
 for i in range(len(r)):
@@ -152,6 +158,10 @@ for i in range(len(f)):
     smmo_m[i,1]=(dD0+1000)*f[i]**(aD_smo_model-1)-1000 # Hydrogen isotope
     smmo_m[i,2]=Dcd0+1000*(aCD_smo_model-aC_smo_model-aD_smo_model+1)*np.log(f[i]) # 13CH3D
     smmo_m[i,3]=Ddd0+1000*(aDD_smo_model-2*aD_smo_model+1)*np.log(f[i]) # 12CH2D2
+    smmo_m[i,4]=(dC0+1000)*f[i]**(aC_smo_model_nc-1)-1000 # Carbon isotope
+    smmo_m[i,5]=(dD0+1000)*f[i]**(aD_smo_model_nc-1)-1000 # Hydrogen isotope
+    smmo_m[i,6]=Dcd0+1000*(aCD_smo_model_nc-aC_smo_model_nc-aD_smo_model_nc+1)*np.log(f[i]) # 13CH3D
+    smmo_m[i,7]=Ddd0+1000*(aDD_smo_model_nc-2*aD_smo_model_nc+1)*np.log(f[i]) # 12CH2D2
 
 fig3,ax3=plt.subplots(figsize=(12,12))
 fig4,ax4=plt.subplots(figsize=(12,12))
@@ -162,7 +172,8 @@ ax3.plot(equib['D13CH3D'],equib['D12CH2D2'],'-k', label = 'Equilibrium', linewid
 # for i in range(len(r)):
 #     ax3.plot(Dcd[i,:],Ddd[i,:], 'ro--', linewidth=3.0, alpha=c[i])
 quick_plot(ax3,"D13CH3D","D12CH2D2","cdse","ddse",mask)
-ax3.plot(smmo_m[:,2],smmo_m[:,3], 'ro-',linewidth=4.0, label="Ab initio calculation")
+ax3.plot(smmo_m[:,2],smmo_m[:,3], 'ro--',linewidth=4.0, label="Ab initio (Wigner correction)")
+ax3.plot(smmo_m[:,6],smmo_m[:,7], 'ko--',linewidth=4.0, label="Ab initio (no correction)")
 ax3.set_xlim([-5,10])
 ax3.set_ylim([-36,28])
 ax3.legend(fontsize=20)
@@ -176,7 +187,8 @@ ax3.tick_params(which='minor',direction='out', top=True, right=True, length=4, w
 # for i in range(len(r)):
 #     ax4.plot(dC[i,:],dD[i,:], 'ro--', linewidth=3.0, alpha=c[i])
 quick_plot(ax4,"d13C","dD","cse","dse",mask)
-ax4.plot(smmo_m[:,0],smmo_m[:,1], 'ro-',linewidth=4.0, label="Ab initio calculation")
+ax4.plot(smmo_m[:,0],smmo_m[:,1], 'ro--',linewidth=4.0, label="Ab initio (Wigner correction)")
+ax4.plot(smmo_m[:,4],smmo_m[:,5], 'ko--',linewidth=4.0, label="Ab initio (No correction)")
 ax4.set_xlabel('$\delta^{13}$C (\u2030)', fontdict = font_labels)
 ax4.set_ylabel('$\delta$D (\u2030)', fontdict = font_labels)
 ax4.yaxis.set_minor_locator(MultipleLocator(20))
@@ -211,7 +223,8 @@ def quick_plot_f(ax,y,ye,msk):
 quick_plot_f(ax5,"D13CH3D","cdse",mask)
 # for i in range(len(r)):
 #     ax5.plot(f,Dcd[i,:], 'ro--', linewidth=3.0, alpha=c[i])
-ax5.plot(f,smmo_m[:,2],'ro--',linewidth=4.0)
+ax5.plot(f,smmo_m[:,2],'ro--',linewidth=4.0,label="Ab initio (Wigner correction)")
+ax5.plot(f,smmo_m[:,6],'ko--',linewidth=4.0,label="Ab initio (No correction)")
 ax5.axes.invert_xaxis()
 ax5.set_ylabel('$\Delta^{13}$CH$_3$D (\u2030)', fontdict = font_labels)
 ax5.set_xlabel(r'$f$', fontdict = font_labels)
@@ -219,7 +232,8 @@ ax5.tick_params(which='major',direction='out', top=True, right=True, length=8, w
 ax5.tick_params(which='minor',direction='out', top=True, right=True, length=4, width=2.0, labelsize=32)
 
 quick_plot_f(ax6,"D12CH2D2",'ddse',mask)
-ax6.plot(f,smmo_m[:,3],'ro--',linewidth=4.0)
+ax6.plot(f,smmo_m[:,3],'ro--',linewidth=4.0,label="Ab initio (Wigner correction)")
+ax6.plot(f,smmo_m[:,7],'ko--',linewidth=4.0,label="Ab initio (No correction)")
 # for i in range(len(r)):
 #     ax6.plot(f,Ddd[i,:], 'ro--', linewidth=3.0, alpha=c[i])
 ax6.axes.invert_xaxis()
@@ -231,7 +245,8 @@ ax6.tick_params(which='minor',direction='out', top=True, right=True, length=4, w
 quick_plot_f(ax7,"d13C","cse",mask)
 # for i in range(len(r)):
 #     ax7.plot(f,dC[i,:], 'ro--', linewidth=3.0, alpha=c[i])
-ax7.plot(f,smmo_m[:,0],'ro--',linewidth=4.0)
+ax7.plot(f,smmo_m[:,0],'ro--',linewidth=4.0,label="Ab initio (Wigner correction)")
+ax7.plot(f,smmo_m[:,4],'ko--',linewidth=4.0,label="Ab initio (No correction)")
 ax7.axes.invert_xaxis()
 ax7.set_ylabel('$\delta^{13}$C (\u2030)', fontdict = font_labels)
 ax7.set_xlabel(r'$f$', fontdict = font_labels)
@@ -241,7 +256,8 @@ ax7.tick_params(which='minor',direction='out', top=True, right=True, length=4, w
 quick_plot_f(ax8,"dD","dse",mask)
 # for i in range(len(r)):
 #     ax8.plot(f,dD[i,:], 'ro--', linewidth=3.0, alpha=c[i])
-ax8.plot(f,smmo_m[:,1],'ro--',linewidth=4.0)
+ax8.plot(f,smmo_m[:,1],'ro--',linewidth=4.0,label="Ab initio (Wigner correction)")
+ax8.plot(f,smmo_m[:,5],'ko--',linewidth=4.0,label="Ab initio (No correction)")
 ax8.axes.invert_xaxis()
 ax8.set_ylabel('$\delta$D (\u2030)', fontdict = font_labels)
 ax8.set_xlabel(r'$f$', fontdict = font_labels)
@@ -271,20 +287,25 @@ plt.grid(axis='y', linestyle='--', alpha=0.5)
 plt.tight_layout()
 plt.show()
 
-series_name=[r"$^{13}\alpha$",r"$^{D}\alpha$",r"$\Delta^{13}$CH$_3$D",r"$\Delta^{12}$CH$_2$D$_2$"]
+series_name=[r"$^{13}\alpha$",r"$^{D}\alpha$",r"$^{13CD}\alpha$",r"$^{DD}\alpha$"]
 fig9,ax9=plt.subplots(figsize=(8,5))
 for i in range(alphas.shape[1]):
     if i==0: # NC10 data
-        ax9.scatter(series_name,alphas[:,i],color="orange",edgecolors="black",s=160,zorder=3)
+        ax9.scatter(series_name,alphas[:,i],color="orange",edgecolors="black",s=160,zorder=3,label="NC10 experiment")
     if i==1:
-        ax9.scatter(series_name,alphas[:,i],color="red",edgecolors="black",s=160,marker="D", zorder=2)
+        ax9.scatter(series_name,alphas[:,i],color="red",edgecolors="black",s=160,marker="D", zorder=2, label="Ab initio (Wigner correction)")
+    if i==2:
+        ax9.scatter(series_name,alphas[:,i],color="black",edgecolors="black",s=160,marker="d", zorder=2, label="Ab initio (No correction)")
+    if i==alphas.shape[1]-1:
+        ax9.scatter(series_name,alphas[:,i],color="white",edgecolors="black",marker="o", s=100, label="Previous studies")
     else:
         ax9.scatter(series_name,alphas[:,i],color="white",edgecolors="black",marker="o", s=100)
 
 ax9.set_ylim([0.38,1.05])
-ax9.set_ylabel("Fractionation factors",fontsize=20)
+ax9.set_ylabel(r"Fractionation factors ($\alpha$)",fontsize=24)
 ax9.tick_params(which='major',direction='out', top=True, right=True, length=8, width=2.5, labelsize=24)
 ax9.tick_params(which='minor',direction='out', top=True, right=True, length=4, width=2.0, labelsize=24)
+ax9.legend(fontsize=16)
 
 
 if mask["save_fig"]==1:
@@ -296,3 +317,4 @@ if mask["save_fig"]==1:
     fig6.savefig('DDf_model.pdf', bbox_inches='tight')
     fig7.savefig('dCf_model.pdf', bbox_inches='tight')
     fig8.savefig('deltaDf_model.pdf', bbox_inches='tight')
+    fig9.savefig('compare_alpha.pdf', bbox_inches='tight')
