@@ -117,7 +117,7 @@ aDD_smo_model_nc= 0.512046881532376
 alphas=np.array([[aC_nc10,aC_smo_model,aC_smo_model_nc, 0.9671, 0.9713, 0.9757, 0.988, 0.978, 0.98485],
         [aD_nc10,aD_smo_model,aD_smo_model_nc,0.6967, 0.7452, 0.7742, 0.8950,0.7980,0.7265],
         [aCD_nc10,aCD_smo_model,aCD_smo_model_nc,0.6716, 0.7249, 0.7580, 0.8847,0.7804,0.7141],
-        [aDD_nc10,aDD_smo_model,aDD_smo_model_nc,0.4309, 0.5291, 0.5841, NaN, NaN, 0.4757]])
+        [aDD_nc10,aDD_smo_model,aDD_smo_model_nc,0.4309, 0.5291, 0.5841, 0, 0, 0.4757]])
 
 # T0 -41.098	0.04	-168.932	0.032	2.495	0.137	7.722	0.791 
 dC0=-41.098
@@ -223,8 +223,8 @@ def quick_plot_f(ax,y,ye,msk):
 quick_plot_f(ax5,"D13CH3D","cdse",mask)
 # for i in range(len(r)):
 #     ax5.plot(f,Dcd[i,:], 'ro--', linewidth=3.0, alpha=c[i])
-ax5.plot(f,smmo_m[:,2],'ro--',linewidth=4.0,label="Ab initio (Wigner correction)")
-ax5.plot(f,smmo_m[:,6],'ko--',linewidth=4.0,label="Ab initio (No correction)")
+# ax5.plot(f,smmo_m[:,2],'ro--',linewidth=4.0,label="Ab initio (Wigner correction)")
+# ax5.plot(f,smmo_m[:,6],'ko--',linewidth=4.0,label="Ab initio (No correction)")
 ax5.axes.invert_xaxis()
 ax5.set_ylabel('$\Delta^{13}$CH$_3$D (\u2030)', fontdict = font_labels)
 ax5.set_xlabel(r'$f$', fontdict = font_labels)
@@ -232,8 +232,8 @@ ax5.tick_params(which='major',direction='out', top=True, right=True, length=8, w
 ax5.tick_params(which='minor',direction='out', top=True, right=True, length=4, width=2.0, labelsize=32)
 
 quick_plot_f(ax6,"D12CH2D2",'ddse',mask)
-ax6.plot(f,smmo_m[:,3],'ro--',linewidth=4.0,label="Ab initio (Wigner correction)")
-ax6.plot(f,smmo_m[:,7],'ko--',linewidth=4.0,label="Ab initio (No correction)")
+# ax6.plot(f,smmo_m[:,3],'ro--',linewidth=4.0,label="Ab initio (Wigner correction)")
+# ax6.plot(f,smmo_m[:,7],'ko--',linewidth=4.0,label="Ab initio (No correction)")
 # for i in range(len(r)):
 #     ax6.plot(f,Ddd[i,:], 'ro--', linewidth=3.0, alpha=c[i])
 ax6.axes.invert_xaxis()
@@ -245,8 +245,8 @@ ax6.tick_params(which='minor',direction='out', top=True, right=True, length=4, w
 quick_plot_f(ax7,"d13C","cse",mask)
 # for i in range(len(r)):
 #     ax7.plot(f,dC[i,:], 'ro--', linewidth=3.0, alpha=c[i])
-ax7.plot(f,smmo_m[:,0],'ro--',linewidth=4.0,label="Ab initio (Wigner correction)")
-ax7.plot(f,smmo_m[:,4],'ko--',linewidth=4.0,label="Ab initio (No correction)")
+# ax7.plot(f,smmo_m[:,0],'ro--',linewidth=4.0,label="Ab initio (Wigner correction)")
+# ax7.plot(f,smmo_m[:,4],'ko--',linewidth=4.0,label="Ab initio (No correction)")
 ax7.axes.invert_xaxis()
 ax7.set_ylabel('$\delta^{13}$C (\u2030)', fontdict = font_labels)
 ax7.set_xlabel(r'$f$', fontdict = font_labels)
@@ -256,8 +256,8 @@ ax7.tick_params(which='minor',direction='out', top=True, right=True, length=4, w
 quick_plot_f(ax8,"dD","dse",mask)
 # for i in range(len(r)):
 #     ax8.plot(f,dD[i,:], 'ro--', linewidth=3.0, alpha=c[i])
-ax8.plot(f,smmo_m[:,1],'ro--',linewidth=4.0,label="Ab initio (Wigner correction)")
-ax8.plot(f,smmo_m[:,5],'ko--',linewidth=4.0,label="Ab initio (No correction)")
+# ax8.plot(f,smmo_m[:,1],'ro--',linewidth=4.0,label="Ab initio (Wigner correction)")
+# ax8.plot(f,smmo_m[:,5],'ko--',linewidth=4.0,label="Ab initio (No correction)")
 ax8.axes.invert_xaxis()
 ax8.set_ylabel('$\delta$D (\u2030)', fontdict = font_labels)
 ax8.set_xlabel(r'$f$', fontdict = font_labels)
