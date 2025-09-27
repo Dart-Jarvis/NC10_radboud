@@ -213,12 +213,12 @@ def quick_plot_f(ax,y,ye,msk):
         ax.errorbar(NC10_ANME['f'],NC10_ANME[y], xerr=NC10_ANME['fse'], yerr=NC10_ANME[ye], markersize=24,label=r'NC10+ANME', fmt='^', 
                     markerfacecolor='blue', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
     if msk["previous data"]==1:
-        ax.errorbar(AeOM_m['f'][AeOM_m['f']>=0.4],AeOM_m[y], xerr=AeOM_m['fse'], yerr=AeOM_m[ye], markersize=16,label=r'AeOM (Li et al., 2024)', fmt='s', 
+        ax.errorbar(AeOM_m['f'][AeOM_m['f']>=0.4],AeOM_m[y], xerr=AeOM_m['fse'], yerr=AeOM_m[ye], markersize=16,label=r'AeOM (Li et al., 2024)', fmt='o', 
                     markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='gray', elinewidth=2.5, zorder=-1)
         ax.errorbar(AeOM_P1['f'],AeOM_P1[y], xerr=AeOM_P1['fse'], yerr=AeOM_P1[ye], markersize=16,label=r'AeOM (Krause et al., 2022)', fmt='^', 
                     markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='gray', elinewidth=2.5, zorder=-1)
         ax.errorbar(AeOM_P2['f'],AeOM_P2[y], xerr=AeOM_P2['fse'], yerr=AeOM_P2[ye], markersize=16,label=r'AeOM (Wang et al., 2016)', fmt='D', 
-                    markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='gray', elinewidth=2.5, zorder=-1)
+                    markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='gray', elinewidth=2.5, zorder=-1)    
 
 quick_plot_f(ax5,"D13CH3D","cdse",mask)
 # for i in range(len(r)):
@@ -237,6 +237,7 @@ quick_plot_f(ax6,"D12CH2D2",'ddse',mask)
 # for i in range(len(r)):
 #     ax6.plot(f,Ddd[i,:], 'ro--', linewidth=3.0, alpha=c[i])
 ax6.axes.invert_xaxis()
+ax6.set_xlim([1.08,0.08])
 ax6.set_ylabel('$\Delta^{12}$CH$_2$D$_2$ (\u2030)', fontdict = font_labels)
 ax6.set_xlabel(r'$f$', fontdict = font_labels)
 ax6.tick_params(which='major',direction='out', top=True, right=True, length=8, width=2.5, labelsize=32)
