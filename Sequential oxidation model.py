@@ -18,11 +18,14 @@ TK=T+273.15 # Equilibration temperature of initial methane in K
 
 output=False
 
+r_aeom=1.0 # Relative rate of AeOM
+r_aom=1.0-r_aeom
+Kin=0.0
+os=False # Open system or not
 # Define a transport flux
-def dfdt(t,Y,r_aeom):
+def dfdt(t,Y):
     # total CH4 in and out
     tCH4=sum(Y[0:4])
-    r_aom=1.0-r_aeom
     # Fraction of methane oxidized by AeOM
     K_aeom[0]=r_aeom*Alpha_aeom[0] # 12CH4
     K_aeom[1]=1/4*r_aeom*Alpha_aeom[1] # 12CH3D, primary
@@ -43,9 +46,13 @@ def dfdt(t,Y,r_aeom):
     K_aom[7]=3/4*r_aom*Alpha_aom[7]
     # Total methane oxidized, ignoring the less abundant isotopologues
     Kt= (K_aeom[0]+K_aom[0])*Y[0]+(K_aeom[5]+K_aom[5])*Y[1]+(K_aeom[1]+K_aom[1]+K_aeom[2]+K_aom[2])*Y[2]+(K_aeom[6]+K_aom[6]+K_aeom[7]+K_aom[7])*Y[3]+(K_aeom[3]+K_aom[3]+K_aeom[4]+K_aom[4])*Y[4] 
-        
+    Kout=Kin-Kt
+    if os==False:
+        Kin=0
+        Kout=0
     # ODE for the temporal change of isotopologue abundance
-    dYdt[10]=-K[0]*Y[10]+K[8]*Y[15]*Y[20]+Kin*Y[0]/tCH4_out-Kout*Y[10]/tCH4_in
+    # A universal model for both closed and open systems
+    dYdt[0]=-(K_aeom[0]+K_aom[0])*Y[0] + Kin*Y0[0] - Kout*Y[0] # 12CH4
     dYdt[11]=-K[5]*Y[11]+K[13]*Y[16]*Y[20]+Kin*Y[1]/tCH4_out-Kout*Y[11]/tCH4_in
     dYdt[12]=-K[2]*Y[12]-K[1]*Y[12]+K[10]*Y[17]*Y[20]+K[9]*Y[15]*Y[21]+Kin*Y[2]/tCH4_out-Kout*Y[12]/tCH4_in
     dYdt[13]=-K[6]*Y[13]-K[7]*Y[13]+K[14]*Y[16]*Y[21]+K[15]*Y[18]*Y[20]+Kin*Y[3]/tCH4_out-Kout*Y[13]/tCH4_in
