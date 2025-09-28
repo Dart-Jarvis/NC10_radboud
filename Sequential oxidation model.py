@@ -31,9 +31,9 @@ TK=T+273.15 # Equilibration temperature of initial methane in K
 
 output=False
 
-r_aeom=0.8 # Relative rate of AeOM
+r_aeom=0.3 # Relative rate of AeOM
 r_aom=1.0-r_aeom
-os=False # Open system or not
+os=True # Open system or not
 if os==True:
     t_upper=10000.0 # Change the t_upper for open system to make sure it reaches steady state
 # Define a transport flux
@@ -62,7 +62,7 @@ def dfdt(t,Y):
     Kt= (K_aeom[0]+K_aom[0])*Y[0]+(K_aeom[5]+K_aom[5])*Y[1]+(K_aeom[1]+K_aom[1]+K_aeom[2]+K_aom[2])*Y[2]+(K_aeom[6]+K_aom[6]+K_aeom[7]+K_aom[7])*Y[3]+(K_aeom[3]+K_aom[3]+K_aeom[4]+K_aom[4])*Y[4] 
     print("Total methane oxidized:", Kt)
     print("Total CH4:", tCH4)
-    phi=0.4
+    phi=0.99
     Kin=Kt/phi
     Kout=Kin-Kt
     if os==False:
