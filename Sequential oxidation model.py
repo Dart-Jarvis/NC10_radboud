@@ -1,16 +1,29 @@
 import matplotlib.pyplot as plt
 import math as math
+from math import sin as sin
+from math import cos as cos
+from math import asin as asin
+from math import acos as acos
+from math import sqrt as sqrt
+import numpy as np
+from numpy import log as ln
+from numpy import log10 as log
+from numpy import exp as exp
+from scipy.integrate import solve_ivp
+from scipy.stats import linregress
+import scipy.special
+import time
 
 # Fractionation factors, in the order of 13C,D,13CD,DD
 a_anme_hs=[0.9951, 0.851, 0.834, 0.660] # High sulfate AOM from Liu et al., 2023
 a_nc10=[0.9778, 0.8019, 0.7843, 0.6296]
 
 #INPUTS
-nmolec=650
+nmolec=10000
 num=10000  #number of time steps
 #------------------------------------------------------------------------------------------------
 t_lower=0.0001 # minimum time for time interval
-t_upper= 160.0 # maximum time for time interval, dimensionless
+t_upper= 1.0 # maximum time for time interval, dimensionless
 
 Tkinetics=293.15 # 20 C, T for AeOM kinetics and re-equilibration in K
 T=200.0 # Equilibration temperature of initial methane in C, OVERRIDEN BY INPUT FILE
@@ -20,8 +33,9 @@ output=False
 
 r_aeom=1.0 # Relative rate of AeOM
 r_aom=1.0-r_aeom
-Kin=0.0
-os=False # Open system or not
+os=True # Open system or not
+if os==True:
+    t_upper=10000.0 # Change the t_upper for open system to make sure it reaches steady state
 # Define a transport flux
 def dfdt(t,Y):
     # total CH4 in and out
@@ -46,25 +60,22 @@ def dfdt(t,Y):
     K_aom[7]=3/4*r_aom*Alpha_aom[7]
     # Total methane oxidized, ignoring the less abundant isotopologues
     Kt= (K_aeom[0]+K_aom[0])*Y[0]+(K_aeom[5]+K_aom[5])*Y[1]+(K_aeom[1]+K_aom[1]+K_aeom[2]+K_aom[2])*Y[2]+(K_aeom[6]+K_aom[6]+K_aeom[7]+K_aom[7])*Y[3]+(K_aeom[3]+K_aom[3]+K_aeom[4]+K_aom[4])*Y[4] 
+    print("Total methane oxidized:", Kt)
+    print("Total CH4:", tCH4)
+    phi=0.5
+    Kin=Kt/phi
     Kout=Kin-Kt
     if os==False:
         Kin=0
         Kout=0
     # ODE for the temporal change of isotopologue abundance
     # A universal model for both closed and open systems
-    dYdt[0]=-(K_aeom[0]+K_aom[0])*Y[0] + Kin*Y0[0] - Kout*Y[0] # 12CH4
-    dYdt[11]=-K[5]*Y[11]+K[13]*Y[16]*Y[20]+Kin*Y[1]/tCH4_out-Kout*Y[11]/tCH4_in
-    dYdt[12]=-K[2]*Y[12]-K[1]*Y[12]+K[10]*Y[17]*Y[20]+K[9]*Y[15]*Y[21]+Kin*Y[2]/tCH4_out-Kout*Y[12]/tCH4_in
-    dYdt[13]=-K[6]*Y[13]-K[7]*Y[13]+K[14]*Y[16]*Y[21]+K[15]*Y[18]*Y[20]+Kin*Y[3]/tCH4_out-Kout*Y[13]/tCH4_in
-    dYdt[14]=-K[3]*Y[14]-K[4]*Y[14]+K[11]*Y[17]*Y[21]+K[12]*Y[19]*Y[20]+Kin*Y[4]/tCH4_out-Kout*Y[14]/tCH4_in
-    dYdt[15]=-K[8]*Y[15]*Y[20]-K[9]*Y[15]*Y[21]+K[0]*Y[10]+K[1]*Y[12] # +Kin*Y[5]-Kout*Y[15]
-    dYdt[16]=-K[13]*Y[16]*Y[20]-K[14]*Y[16]*Y[21]+K[5]*Y[11]+K[6]*Y[13] # +Kin*Y[6]-Kout*Y[16]
-    dYdt[17]=-K[10]*Y[17]*Y[20]-K[11]*Y[17]*Y[21]+K[2]*Y[12]+K[3]*Y[14] # +Kin*Y[7]-Kout*Y[17]
-    dYdt[18]=-K[15]*Y[18]*Y[20]+K[7]*Y[13] # +Kin*Y[8]-Kout*Y[18]
-    dYdt[19]=-K[12]*Y[19]*Y[20]+K[4]*Y[14] # +Kin*Y[9]-Kout*Y[19]
-    dYdt[20]=-K[8]*Y[20]*Y[15]-K[10]*Y[20]*Y[17]-K[12]*Y[20]*Y[19]-K[13]*Y[20]*Y[16]-K[15]*Y[20]*Y[18] \
-        +K[0]*Y[10]+K[2]*Y[12]+K[4]*Y[14]+K[5]*Y[11]+K[7]*Y[13]
-    dYdt[21]=-K[9]*Y[21]*Y[15]-K[11]*Y[21]*Y[17]-K[14]*Y[21]*Y[16]+K[1]*Y[12]+K[3]*Y[14]+K[6]*Y[13]
+    dYdt[0]=-(K_aeom[0]+K_aom[0])*Y[0] + Kin*Y0[0]/tCH4 - Kout*Y[0]/tCH4 # 12CH4
+    dYdt[1]=-(K_aeom[5]+K_aom[5])*Y[1] + Kin*Y0[1]/tCH4 - Kout*Y[1]/tCH4 # 13CH4
+    dYdt[2]=-(K_aeom[2]+K_aom[2])*Y[2]-(K_aeom[1]+K_aom[1])*Y[2] + Kin*Y0[2]/tCH4 - Kout*Y[2]/tCH4 # 12CH3D
+    dYdt[3]=-(K_aeom[6]+K_aom[6])*Y[3]-(K_aeom[7]+K_aom[7])*Y[3] + Kin*Y0[3]/tCH4 - Kout*Y[3]/tCH4 # 13CH3D
+    dYdt[4]=-(K_aeom[3]+K_aom[3])*Y[4]-(K_aeom[4]+K_aom[4])*Y[4] + Kin*Y0[4]/tCH4 - Kout*Y[4]/tCH4 # 12CH2D2
+
     return dYdt
 
 #INITIALIZE ARRAYS
@@ -198,29 +209,6 @@ xH,xD,x12C,x13C,xst_CH4,xeq_CH4,alpha13D,alphaD2 = CH4_isotopologues(dD_CH4, d13
 D12CH2D2_CH4=1000.0*(ratio_i_CH2D2_CH4/(xst_CH4[4]/xst_CH4[0])-1.0)
 D13CH3D_CH4=1000.0*(ratio_i_13CH3D_CH4/(xst_CH4[3]/xst_CH4[0])-1.0)
 
-ynames=[
-"12CH4  out",
-"13CH4  out",
-"12CH3D out",
-"13CH3D out",
-"12CH2D2 out",
-"12CH3  out",
-"13CH3  out",
-"12CH2D out",
-"13CH2D out",
-"12CHD2 out",
-"12CH4  ",
-"13CH4  ",
-"12CH3D ",
-"13CH3D ",
-"12CH2D2",
-"12CH3  ",
-"13CH3  ",
-"12CH2D ",
-"13CH2D ",
-"12CHD2 ",
-"H      ",
-"D      "]
 print('')
 print('INITIAL CONDITION VECTOR (moles)')
 i=0
@@ -238,53 +226,6 @@ print("   xD\t =",xD)
 print("   x12C\t =",x12C)
 print("   x13C\t =",x13C)
 print('')
-print("Isotopologue   \t Stochastic \t Actual")
-i=0
-while i < len(xst_CH4):
-    print("   %s \t %.4e \t %.4e  " %(xnames[i],xst_CH4[i],xeq_CH4[i]))
-    i=i+1
-# ratio_i_CH2D2_CH4=xeq_CH4[4]/xeq_CH4[0]
-# ratio_i_13CH3D_CH4=xeq_CH4[3]/xeq_CH4[0]
-
-# SETUP 16 REACTIONS USED TO DESCRIBE THE KINETICS
-rxn_names=[
-"CH4 = CH3 + H  ",
-"CH3D = CH3 + D ",
-"CH3D = CH2D + H",
-"CH2D2 = CH2D + D",
-"CH2D2 = CHD2 + H",
-"13CH4 = 13CH3 + H",
-"13CH3D = 13CH3 +D",
-"13CH3D = 13CH2D+H",
-"CH3 + H = CH4  ",
-"CH3 + D = CH3D ",
-"CH2D + H = CH3D",
-"CH2D + D = CH2D2",
-"CHD2 + H = CH2D2",
-"13CH3 + H = 13CH4",
-"13CH3 + D = 13CH3D",
-"13CH2D + H = 13CH3D"
-]
-nrxns=len(rxn_names)
-#------------------------------------------------------------------------------------------------
-# FRACTIONATON FACTORS -- This is to compare the fractionation factors with the ratios of the reduced mass
-# mass_12C = 12.00
-# mass_13C = 13.003355
-# mass_H  = 1.00784
-# mass_D  = 2.01410178
-
-# redmass_12C_H=1.0/(1.0/mass_12C+1.0/mass_H)
-# redmass_13C_H=1.0/(1.0/mass_13C+1.0/mass_H)
-# redmass_12C_D=1.0/(1.0/mass_12C+1.0/mass_D)
-# redmass_13C_D=1.0/(1.0/mass_13C+1.0/mass_D)
-
-# print('')
-# print('')
-# print('KINETICS')
-# print("reduced mass 12C-H =\t %.8f" %redmass_12C_H )
-# print("reduced mass 13C-H =\t %.8f" %redmass_13C_H )
-# print("reduced mass 12C-D =\t %.8f" %redmass_12C_D )
-# print("reduced mass 13C-D =\t %.8f" %redmass_13C_D )
 
 # For the CH4 destruction, we use the sqrt of reduced masses for the bond being ruptured.
 # Rate constants are stored in array K. The reduced mass ratios are stored as fractionation
@@ -293,81 +234,47 @@ G5=1/Tkinetics
 alpha13Dkinetics=1.0+0.03555020*G5-433.038*G5**2+1.27021e6*G5**3-5.94804e8*G5**4+1.19663e11*G5**5-9.0723e12*G5**6
 alphaD2kinetics=1.0+0.183798*G5-785.483*G5**2+1.056280e6*G5**3+9.37307e7*G5**4-8.91948e10*G5**5+9.90173e12*G5**6
 
-#TESTING the effect of no thermodynamic advantage for clumping
-# alpha13Dkinetics=1.0
-# alphaD2kinetics=1.0
-
-# nrxns=16
-# # basic bond rupture
-# Alpha[0]=np.sqrt(redmass_12C_H/redmass_12C_H)
-# Alpha[1]=np.sqrt(redmass_12C_H/redmass_12C_D)
-# Alpha[2]=np.sqrt(redmass_12C_H/redmass_12C_H)
-# Alpha[3]=np.sqrt(redmass_12C_H/redmass_12C_D) #CH2D2 --> D
-# Alpha[4]=np.sqrt(redmass_12C_H/redmass_12C_H) #CH2D2 --> H
-# Alpha[5]=np.sqrt(redmass_12C_H/redmass_13C_H)
-# Alpha[6]=np.sqrt(redmass_12C_H/redmass_13C_D)
-# Alpha[7]=np.sqrt(redmass_12C_H/redmass_13C_H)
-
-#Primary vs. secondary isotope effects
-# Alpha[0]=1.0
-# Alpha[1]=0.85101*4.0-1.0*3.0
-# Alpha[2]=1.0
-# Alpha[3]=0.66021*4.0-0.8*3.0 #CH2D2 --> D
-# Alpha[4]=0.8 #CH2D2 --> H
-# Alpha[5]=0.99512
-# Alpha[6]=0.83406*4.0-1.0*3.0
-# Alpha[7]=1.0
-# s determines which experiment is modeled, h, l, 27, 21
-
 #-------------------
-Alpha=np.ones(nrxns)
-K=np.zeros(nrxns)
-Alpha[0]=1.0 # Set to 1 as default
-Alpha[1]=aD # 0.8307 # CH3D --> CH3+D # measured aD value in the experiment
-Alpha[2]=aD # 0.8307 # CH3D -->CH2D+H
-Alpha[3]=aDD # 0.6358 # CH2D2 --> D # Measured aDD
-Alpha[4]=aDD # 0.6358 # CH2D2 --> H
-Alpha[5]=a13 # 0.9824 # 13CH4 --> 13CH3+H # Measured a13C
-Alpha[6]=aCD # 0.813 # 13CH3D -->13CH3+D # Meaured a13CD
-Alpha[7]=aCD # 0.813 # 13CH3D --> 13CH2D+H
+nrxns=8
+rxns=[
+"12CH4 -> 12CH3 + H",
+"12CH3D -> 12CH3 + D",
+"12CH3D -> 12CH2D + H",
+"12CH2D2 -> 12CH2D + D",
+"12CH2D2 -> 12CHD2 + H",
+"13CH4 -> 13CH3 + H",
+"13CH3D -> 13CH3 + D",
+"13CH3D -> 13CH2D + H"
+]
 
-# Alpha[11]=Alpha[11]*alphaD2kinetics
-# Alpha[12]=Alpha[12]*alphaD2kinetics
-# Alpha[14]=Alpha[14]*alpha13Dkinetics
-# Alpha[15]=Alpha[15]*alpha13Dkinetics
+Alpha_aeom=np.ones(nrxns)
+Alpha_aom=np.ones(nrxns)
+K_aeom=np.zeros(nrxns)
+K_aom=np.zeros(nrxns)
 
-#Consider equilibrium isotope effects for both bulk and clumping
-alpha_13CH4_eq = np.exp(2.1/1000) #Data from Gropp et al. (2021, GCA) @ 25 C
-alpha_12CH3D_P_eq = np.exp(-635.8/1000) 
-alpha_12CH3D_S_eq = np.exp(55.4/1000)
-gamma_13CH3D_P_eq = 1.0/alpha13Dkinetics #0.9943
-gamma_13CH3D_S_eq = 0.9998
-gamma_12CH2D2_P_eq = 1.0/alphaD2kinetics #0.9818
-gamma_12CH2D2_S_eq = 0.9972
+Alpha_aeom[0]=1.0 # Set to 1 as default
+Alpha_aeom[1]=a_nc10[1]
+Alpha_aeom[2]=a_nc10[1]
+Alpha_aeom[3]=a_nc10[3]
+Alpha_aeom[4]=a_nc10[3]
+Alpha_aeom[5]=a_nc10[0]
+Alpha_aeom[6]=a_nc10[2]
+Alpha_aeom[7]=a_nc10[2]
 
-if reversible:
-    Alpha[8]=Alpha[0]                                                              # Alpha[0] # for reversibility
-    Alpha[9]=Alpha[1]/alpha_12CH3D_P_eq                                            # Alpha[1] #for reversibility
-    Alpha[10]=Alpha[2]/alpha_12CH3D_S_eq                                           # Alpha[2] #for reversibility
-    Alpha[11]=Alpha[3]/(gamma_12CH2D2_P_eq*alpha_12CH3D_P_eq*alpha_12CH3D_S_eq)    # Alpha[3]*alphaD2kinetics #for reversibility
-    Alpha[12]=Alpha[4]/(gamma_12CH2D2_S_eq*alpha_12CH3D_S_eq*alpha_12CH3D_S_eq)    # Alpha[4]*alphaD2kinetics #for reversibility
-    Alpha[13]=Alpha[5]/alpha_13CH4_eq                                              # Alpha[5] #for reversibility
-    Alpha[14]=Alpha[6]/(gamma_13CH3D_P_eq*alpha_13CH4_eq*alpha_12CH3D_P_eq)        # Alpha[6]*alpha13Dkinetics #for reversibility
-    Alpha[15]=Alpha[7]/(gamma_13CH3D_S_eq*alpha_13CH4_eq*alpha_12CH3D_S_eq)        # Alpha[7]*alpha13Dkinetics #for reversibility
-
-#     Alpha[8]=Alpha[0]                                                              # Alpha[0] # for reversibility
-#     Alpha[9]=Alpha[1]/alpha_12CH3D_P_eq                                            # Alpha[1] #for reversibility
-#     Alpha[10]=Alpha[2]/alpha_12CH3D_S_eq                                           # Alpha[2] #for reversibility
-#     Alpha[11]=Alpha[3]*alphaD2kinetics/(alpha_12CH3D_P_eq*alpha_12CH3D_S_eq)       # Alpha[3]*alphaD2kinetics #for reversibility
-#     Alpha[12]=Alpha[4]*1.0/(alpha_12CH3D_S_eq*alpha_12CH3D_S_eq)       # Alpha[4]*alphaD2kinetics #for reversibility
-#     Alpha[13]=Alpha[5]/alpha_13CH4_eq                                              # Alpha[5] #for reversibility
-#     Alpha[14]=Alpha[6]*alpha13Dkinetics/(alpha_13CH4_eq*alpha_12CH3D_P_eq)         # Alpha[6]*alpha13Dkinetics #for reversibility
-#     Alpha[15]=Alpha[7]*1.0/(alpha_13CH4_eq*alpha_12CH3D_S_eq)         # Alpha[7]*alpha13Dkinetics #for reversibility
+Alpha_aom[0]=1.0 # Set to 1 as default
+Alpha_aom[1]=a_anme_hs[1]
+Alpha_aom[2]=a_anme_hs[1]
+Alpha_aom[3]=a_anme_hs[3]
+Alpha_aom[4]=a_anme_hs[3]
+Alpha_aom[5]=a_anme_hs[0]
+Alpha_aom[6]=a_anme_hs[2]
+Alpha_aom[7]=a_anme_hs[2]
     
 print('')
 i=0
-while i < len(Alpha):
-    print("Alpha for reaction %d.\t %s\t= %.6f" %(i,rxn_names[i],Alpha[i]))
+while i < len(Alpha_aeom):
+    print("Alpha AeOM for reaction %d.\t %s\t= %.6f" %(i,rxns[i],Alpha_aeom[i]))
+    print("Alpha AOM for reaction %d.\t %s\t= %.6f" %(i,rxns[i],Alpha_aom[i]))
     i=i+1
 
 #------------------------------------------------------------------------------------------------
@@ -377,7 +284,7 @@ while i < len(Alpha):
 print('')
 print('INITIAL CONDITION VECTOR (moles)')
 i=0
-while i < len(Yout):
+while i < ny:
     # Yout[i]=Y0[i]  # Initialize Y for calculation of rates
     print("%i. %s \t = %.6e" %(i, ynames[i],Y0[i]))
     i=i+1
@@ -387,16 +294,12 @@ print("total H initial =",totalH)
 print("total D initial=",totalD)
 
 
-dYdt=np.zeros(2*ny-2) # Vector of dY/dt values evaluated in function below.
+dYdt=np.zeros(ny) # Vector of dY/dt values evaluated in function below.
 
 #------------------------------------------------------------------------------------------------
 # SOLVE ODEs. Returned array Y has each element being an array for variable i at each time
-#t_lower=0.0001
-#t_upper=6.0
 tint=np.linspace(t_lower,t_upper,num)  # num is number of time steps specified at top of program
 soln=solve_ivp(dfdt,(t_lower,t_upper),Y0,t_eval=tint,atol=1.0e-11,rtol=1.0e-9)
-# print(soln.t)
-#print(soln.t)
 #------------------------------------------------------------------------------------------------
 
 # PROCESS RESULTS INTO IDENTIFIABLE ISOTOPOLOGUE PARAMETERS
@@ -432,37 +335,6 @@ F_CH4=soln.y[0]/Y0[0]
 minus_lnF_CH4=-np.log(F_CH4)
 print('')
 #print('F values =',F_CH4)
-
-# PROCESS RESULTS FOR CH3: access single scalar in Y using Y[element][timestep], as in Y[5][1]
-# yields CH3 concentration in the 2nd time step.
-# soln.y[5][0]=1.0e-12
-# d13C_CH3_t=1000.0*((soln.y[6]/soln.y[5])/VPDB-1.0)
-# dD_CH3_t=1000.0*(((soln.y[7]/soln.y[5])/4.0)/VSMOW -1.0)
-# xCH2D_t=soln.y[7]/soln.y[5]
-# xCHD2_t=soln.y[9]/soln.y[5]
-# x13CH2D_t=soln.y[8]/soln.y[5]
-print('')
-#print("d13C CH3(t)=",d13C_CH3_t)
-#print("dD CH3(t)=",dD_CH3_t)
-#print("xCH2D(t)=",xCH2D_t)
-#print("x13CH2D(t)=",x13CH2D_t)
-#print("xCHD2(t)=",xCHD2_t)
-
-# PROCESS RESULTS FOR D/H CH3:
-soln.y[10][0]=1.0e-10
-dD_H_t=1000.0*((soln.y[11]/soln.y[10])/VSMOW-1.0)
-#print("dD H=",dD_H_t)
-
-## MASS BALANCE CHECK
-#totalH_t=4.0*soln.y[0]+4.0*soln.y[1]+3.0*(soln.y[2]+soln.y[3]+soln.y[5]+soln.y[6])+2.0*(soln.y[4]+soln.y[7]+soln.y[8])+soln.y[10]
-#totalD_t=soln.y[2]+soln.y[3]+soln.y[7]+soln.y[8]+2.0*(soln.y[4]+soln.y[9])+soln.y[11]
-#total12C_t=soln.y[0]+soln.y[2]+soln.y[4]+soln.y[5]+soln.y[7]+soln.y[9]
-#print("total H(t)=",totalH_t)
-#print('')
-#print("total D(t)=",totalD_t)
-#print('')
-#print("total 12C(t)=",total12C_t)
-
 
 # EQUILIBRIUM CURVE for plotting
 Tref=np.linspace(290.0,1200.0,100)
