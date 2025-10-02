@@ -101,10 +101,10 @@ aCD_nc10=0.7843
 aDD_nc10=0.6296
 
 # sMMO ab initio model
-aC_smo_model=0.9871644
-aD_smo_model=0.7271113
-aCD_smo_model=0.7175155	
-aDD_smo_model=0.4857025
+aC_smo_model=0.98704
+aD_smo_model=0.72548
+aCD_smo_model=0.71581	
+aDD_smo_model=0.48299
 
 # sMMO ab initio model, no Wigner correction
 aC_smo_model_nc=0.9875826748616653 

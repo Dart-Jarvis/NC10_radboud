@@ -97,12 +97,32 @@ aH_OH=1/4*(calc_rpfr(ts_freq_OH,ch4_freq_OH,kappa_ts_OH,"CHHHD","CHHHD", True)+
         calc_rpfr(ts_freq_OH,ch4_freq_OH,kappa_ts_OH,"CHHDH","CHHHD", True)+
         calc_rpfr(ts_freq_OH,ch4_freq_OH,kappa_ts_OH,"CHDHH","CHHHD", True)+   
         calc_rpfr(ts_freq_OH,ch4_freq_OH,kappa_ts_OH,"CDHHH","CHHHD", True))
+aCD_OH=1/4*(calc_rpfr(ts_freq_OH,ch4_freq_OH,kappa_ts_OH,"QHHHD","QHHHD",True)+
+            calc_rpfr(ts_freq_OH,ch4_freq_OH,kappa_ts_OH,"QHHDH","QHHHD",True)+
+            calc_rpfr(ts_freq_OH,ch4_freq_OH,kappa_ts_OH,"QHDHH","QHHHD",True)+
+            calc_rpfr(ts_freq_OH,ch4_freq_OH,kappa_ts_OH,"QDHHH","QHHHD",True))
+aDD_OH=1/6*(calc_rpfr(ts_freq_OH,ch4_freq_OH,kappa_ts_OH,"CHHDD","CHHDD",True)+
+            calc_rpfr(ts_freq_OH,ch4_freq_OH,kappa_ts_OH,"CHDDH","CHHDD",True)+
+            calc_rpfr(ts_freq_OH,ch4_freq_OH,kappa_ts_OH,"CDDHH","CHHDD",True)+
+            calc_rpfr(ts_freq_OH,ch4_freq_OH,kappa_ts_OH,"CHDHD","CHHDD",True)+
+            calc_rpfr(ts_freq_OH,ch4_freq_OH,kappa_ts_OH,"CDHHD","CHHDD",True)+
+            calc_rpfr(ts_freq_OH,ch4_freq_OH,kappa_ts_OH,"CDHDH","CHHDD",True))
 
-print(a13_OH, aH_OH)
+print("CH4-OH ab initio","\n",a13_OH,"\n", aH_OH,"\n", aCD_OH,"\n", aDD_OH)
 
 a13=calc_rpfr(ts_freq,ch4_freq,kappa_ts,"QHHHH","QHHHH",True)
-aH=1/4*(calc_rpfr(ts_freq,ch4_freq,kappa_ts_OH,"CHHHD","CHHHD", True)+
-        calc_rpfr(ts_freq,ch4_freq,kappa_ts_OH,"CHHDH","CHHHD", True)+
-        calc_rpfr(ts_freq,ch4_freq,kappa_ts_OH,"CHDHH","CHHHD", True)+   
-        calc_rpfr(ts_freq,ch4_freq,kappa_ts_OH,"CDHHH","CHHHD", True))
-print("sMMO ab initio", "\n", a13, "\n", aH)
+aH=1/4*(calc_rpfr(ts_freq,ch4_freq,kappa_ts,"CHHHD","CHHHD", True)+
+        calc_rpfr(ts_freq,ch4_freq,kappa_ts,"CHHDH","CHHHD", True)+
+        calc_rpfr(ts_freq,ch4_freq,kappa_ts,"CHDHH","CHHHD", True)+   
+        calc_rpfr(ts_freq,ch4_freq,kappa_ts,"CDHHH","CHHHD", True))
+aCD=1/4*(calc_rpfr(ts_freq,ch4_freq,kappa_ts,"QHHHD","QHHHD",True)+
+            calc_rpfr(ts_freq,ch4_freq,kappa_ts,"QHHDH","QHHHD",True)+
+            calc_rpfr(ts_freq,ch4_freq,kappa_ts,"QHDHH","QHHHD",True)+
+            calc_rpfr(ts_freq,ch4_freq,kappa_ts,"QDHHH","QHHHD",True))
+aDD=1/6*(calc_rpfr(ts_freq,ch4_freq,kappa_ts,"CHHDD","CHHDD",True)+
+            calc_rpfr(ts_freq,ch4_freq,kappa_ts,"CHDDH","CHHDD",True)+
+            calc_rpfr(ts_freq,ch4_freq,kappa_ts,"CDDHH","CHHDD",True)+
+            calc_rpfr(ts_freq,ch4_freq,kappa_ts,"CHDHD","CHHDD",True)+
+            calc_rpfr(ts_freq,ch4_freq,kappa_ts,"CDHHD","CHHDD",True)+
+            calc_rpfr(ts_freq,ch4_freq,kappa_ts,"CDHDH","CHHDD",True))
+print("sMMO ab initio", "\n", a13, "\n", aH,"\n", aCD, "\n", aDD)
