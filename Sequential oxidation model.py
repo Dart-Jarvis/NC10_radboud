@@ -33,6 +33,7 @@ output=False
 
 r_aeom=0.3 # Relative rate of AeOM
 r_aom=1.0-r_aeom
+rev=0.0 # Reversibility of AOM as defined by kr/kf
 os=True # Open system or not
 if os==True:
     t_upper=10000.0 # Change the t_upper for open system to make sure it reaches steady state
@@ -50,6 +51,8 @@ def dfdt(t,Y):
     K_aeom[6]=1/4*r_aeom*Alpha_aeom[6] # 13CH3D, primary
     K_aeom[7]=3/4*r_aeom*Alpha_aeom[7] # 13CH3D, secondary
     # Fraction of methane oxidized by AOM
+    K_aom=r_aom/(1-rev)
+    K_synth=rev*K_aom
     K_aom[0]=r_aom*Alpha_aom[0]
     K_aom[1]=1/4*r_aom*Alpha_aom[1] 
     K_aom[2]=3/4*r_aom*Alpha_aom[2] 
@@ -58,8 +61,16 @@ def dfdt(t,Y):
     K_aom[5]=r_aom*Alpha_aom[5]
     K_aom[6]=1/4*r_aom*Alpha_aom[6]
     K_aom[7]=3/4*r_aom*Alpha_aom[7]
-    # Total methane oxidized, ignoring the less abundant isotopologues
-    Kt= (K_aeom[0]+K_aom[0])*Y[0]+(K_aeom[5]+K_aom[5])*Y[1]+(K_aeom[1]+K_aom[1]+K_aeom[2]+K_aom[2])*Y[2]+(K_aeom[6]+K_aom[6]+K_aeom[7]+K_aom[7])*Y[3]+(K_aeom[3]+K_aom[3]+K_aeom[4]+K_aom[4])*Y[4] 
+    K_aom[8]=0.5*K_synth*Alpha_aom[8] # CH3+H->CH4
+    K_aom[9]=0.5*K_synth*Alpha_aom[9] # CH3+D->CH3D
+    K_aom[10]=0.5*K_synth*Alpha_aom[10] # CH2D+H->CH3D
+    K_aom[11]=0.5*K_synth*Alpha_aom[11] # CH2D+D->CH2D2
+    K_aom[12]=0.5*K_synth*Alpha_aom[12] # CHD2+H->CH2D2
+    K_aom[13]=0.5*K_synth*Alpha_aom[13] # 13CH3+H->13CH4
+    K_aom[14]=0.5*K_synth*Alpha_aom[14] # 13CH3+D->13CH3D
+    K_aom[15]=0.5*K_synth*Alpha_aom[15] # 13CH2D+H->13CH3D
+    # Total methane oxidized, ignoring the less abundant isotopologues, net oxidation rate
+    Kt= (K_aeom[0]+K_aom[0])*Y[0]+(K_aeom[5]+K_aom[5])*Y[1]+(K_aeom[1]+K_aom[1]+K_aeom[2]+K_aom[2])*Y[2]+(K_aeom[6]+K_aom[6]+K_aeom[7]+K_aom[7])*Y[3]+(K_aeom[3]+K_aom[3]+K_aeom[4]+K_aom[4])*Y[4]
     print("Total methane oxidized:", Kt)
     print("Total CH4:", tCH4)
     phi=0.99
@@ -170,6 +181,7 @@ def CH3_isotopologues(dD,d13C):
         i=i+1
     return xst_CH3,xeq_CH3
 
+# Isotopologue mole fraction names for all species
 ynames=[
 "12CH4  ",
 "13CH4  ",
@@ -181,6 +193,7 @@ ynames=[
 "13CHD3",
 "12CD4 ",
 "13CD4 ",
+
 "H      ",
 "D      "]
 
@@ -235,7 +248,7 @@ alpha13Dkinetics=1.0+0.03555020*G5-433.038*G5**2+1.27021e6*G5**3-5.94804e8*G5**4
 alphaD2kinetics=1.0+0.183798*G5-785.483*G5**2+1.056280e6*G5**3+9.37307e7*G5**4-8.91948e10*G5**5+9.90173e12*G5**6
 
 #-------------------
-nrxns=8
+nrxns=16
 rxns=[
 "12CH4 -> 12CH3 + H",
 "12CH3D -> 12CH3 + D",
@@ -244,7 +257,15 @@ rxns=[
 "12CH2D2 -> 12CHD2 + H",
 "13CH4 -> 13CH3 + H",
 "13CH3D -> 13CH3 + D",
-"13CH3D -> 13CH2D + H"
+"13CH3D -> 13CH2D + H",
+"CH3 + H = CH4  ",
+"CH3 + D = CH3D ",
+"CH2D + H = CH3D",
+"CH2D + D = CH2D2",
+"CHD2 + H = CH2D2",
+"13CH3 + H = 13CH4",
+"13CH3 + D = 13CH3D",
+"13CH2D + H = 13CH3D"
 ]
 
 Alpha_aeom=np.ones(nrxns)
