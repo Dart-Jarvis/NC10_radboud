@@ -29,12 +29,43 @@ Tkinetics=293.15 # 20 C, T for AeOM kinetics and re-equilibration in K
 T=200.0 # Equilibration temperature of initial methane in C, OVERRIDEN BY INPUT FILE
 TK=T+273.15 # Equilibration temperature of initial methane in K
 
+# Isotopologue mole fraction names for all species
+ynames=[
+"12CH4  ",
+"13CH4  ",
+"12CH3D ",
+"13CH3D ",
+"12CH2D2",
+"13CH2D2",
+"12CHD3",
+"13CHD3",
+"12CD4 ",
+"13CD4 ",
+"12CH3",
+"13CH3",
+"12CH2D",
+"12CHD2",
+"13CH2D",
+"H      ",
+"D      "]
+
+abundance=[9.8877187e-01,
+1.0695670e-02,
+5.2665729e-04,
+5.7133199e-06,
+1.0584170e-07,
+1.1378978e-09,
+9.3383922e-12,
+1.0101457e-13,
+3.1087380e-16,
+3.3627612e-18]
+
 output=False
 
 r_aeom=0.3 # Relative rate of AeOM
 r_aom=1.0-r_aeom
 rev=0.0 # Reversibility of AOM as defined by kr/kf
-os=True # Open system or not
+os=False # Open system or not
 if os==True:
     t_upper=10000.0 # Change the t_upper for open system to make sure it reaches steady state
 # Define a transport flux
@@ -81,12 +112,20 @@ def dfdt(t,Y):
         Kout=0
     # ODE for the temporal change of isotopologue abundance
     # A universal model for both closed and open systems
-    dYdt[0]=-(K_aeom[0]+K_aom[0])*Y[0] + Kin*Y0[0]/tCH4 - Kout*Y[0]/tCH4 # 12CH4
-    dYdt[1]=-(K_aeom[5]+K_aom[5])*Y[1] + Kin*Y0[1]/tCH4 - Kout*Y[1]/tCH4 # 13CH4
-    dYdt[2]=-(K_aeom[2]+K_aom[2])*Y[2]-(K_aeom[1]+K_aom[1])*Y[2] + Kin*Y0[2]/tCH4 - Kout*Y[2]/tCH4 # 12CH3D
-    dYdt[3]=-(K_aeom[6]+K_aom[6])*Y[3]-(K_aeom[7]+K_aom[7])*Y[3] + Kin*Y0[3]/tCH4 - Kout*Y[3]/tCH4 # 13CH3D
-    dYdt[4]=-(K_aeom[3]+K_aom[3])*Y[4]-(K_aeom[4]+K_aom[4])*Y[4] + Kin*Y0[4]/tCH4 - Kout*Y[4]/tCH4 # 12CH2D2
-
+    dYdt[0]=-(K_aeom[0]+K_aom[0])*Y[0] + K_aom[8]*Y[10]*Y[15] + Kin*Y0[0]/tCH4 - Kout*Y[0]/tCH4 # 12CH4
+    dYdt[1]=-(K_aeom[5]+K_aom[5])*Y[1] + K_aom[13]*Y[11]*Y[15] + Kin*Y0[1]/tCH4 - Kout*Y[1]/tCH4 # 13CH4
+    dYdt[2]=-(K_aeom[2]+K_aom[2])*Y[2]-(K_aeom[1]+K_aom[1])*Y[2] + K_aom[9]*Y[10]*Y[16] + K_aom[10]*Y[12]*Y[15] + Kin*Y0[2]/tCH4 - Kout*Y[2]/tCH4 # 12CH3D
+    dYdt[3]=-(K_aeom[6]+K_aom[6])*Y[3]-(K_aeom[7]+K_aom[7])*Y[3] + K_aom[14]*Y[3]*Y[16] + K_aom[15]*Y[14]*Y[15] + Kin*Y0[3]/tCH4 - Kout*Y[3]/tCH4 # 13CH3D
+    dYdt[4]=-(K_aeom[3]+K_aom[3])*Y[4]-(K_aeom[4]+K_aom[4])*Y[4] + K_aom[11]*Y[12]*Y[16] + K_aom[12]*Y[13]*Y[15] + Kin*Y0[4]/tCH4 - Kout*Y[4]/tCH4 # 12CH2D2
+    # Ignore the triply or more substituted isotopologues
+    # Only the AOM reaction is reversible, so only consider the contribution of aom to these species
+    dYdt[10]= K_aom[0]*Y[0] + K_aom[1]*Y[2] - K_aom[8]*Y[10]*Y[15] - K_aom[9]*Y[10]*Y[16] # 12CH3
+    dYdt[11]= K_aom[5]*Y[1] + K_aom[6]*Y[3] - K_aom[13]*Y[11]*Y[15] - K_aom[14]*Y[3]*Y[16] # 13CH3
+    dYdt[12]= K_aom[2]*Y[2] + K_aom[3]*Y[4] -  K_aom[10]*Y[12]*Y[15] - K_aom[11]*Y[12]*Y[16] # 12CH2D
+    dYdt[13]= # 12CHD2
+    dYdt[14]= # 13CH2D
+    dYdt[15]= # H
+    dYdt[16]= # D
     return dYdt
 
 #INITIALIZE ARRAYS
@@ -181,37 +220,10 @@ def CH3_isotopologues(dD,d13C):
         i=i+1
     return xst_CH3,xeq_CH3
 
-# Isotopologue mole fraction names for all species
-ynames=[
-"12CH4  ",
-"13CH4  ",
-"12CH3D ",
-"13CH3D ",
-"12CH2D2",
-"13CH2D2",
-"12CHD3",
-"13CHD3",
-"12CD4 ",
-"13CD4 ",
-
-"H      ",
-"D      "]
-
-abundance=[9.8877187e-01,
-1.0695670e-02,
-5.2665729e-04,
-5.7133199e-06,
-1.0584170e-07,
-1.1378978e-09,
-9.3383922e-12,
-1.0101457e-13,
-3.1087380e-16,
-3.3627612e-18]
-
 ny=len(ynames)
 Y0=np.zeros(ny)
 
-for i in range(0,5):
+for i in range(len(abundance)):
     Y0[i]=nmolec*abundance[i]  # Assign first 5 CH4 relative abundances to Y0, put arbitrary multiplier here
 # Calculate compositional parameters for input CH4
 d13C_CH4=1000.0*((Y0[1]/Y0[0])/VPDB -1.0)
