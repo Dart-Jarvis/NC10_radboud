@@ -62,9 +62,9 @@ abundance=[9.8877187e-01,
 
 output=False
 
-r_aeom=0.3 # Relative rate of AeOM
+r_aeom=0.0 # Relative rate of AeOM
 r_aom=1.0-r_aeom
-rev=0.0 # Reversibility of AOM as defined by kr/kf
+rev=5e-4 # Reversibility of AOM as defined by kr/kf
 os=False # Open system or not
 if os==True:
     t_upper=10000.0 # Change the t_upper for open system to make sure it reaches steady state
@@ -82,8 +82,8 @@ def dfdt(t,Y):
     K_aeom[6]=1/4*r_aeom*Alpha_aeom[6] # 13CH3D, primary
     K_aeom[7]=3/4*r_aeom*Alpha_aeom[7] # 13CH3D, secondary
     # Fraction of methane oxidized by AOM
-    K_aom=r_aom/(1-rev)
-    K_synth=rev*K_aom
+    K_aom_f=r_aom/(1-rev)
+    K_synth=rev*K_aom_f
     K_aom[0]=r_aom*Alpha_aom[0]
     K_aom[1]=1/4*r_aom*Alpha_aom[1] 
     K_aom[2]=3/4*r_aom*Alpha_aom[2] 
@@ -102,8 +102,12 @@ def dfdt(t,Y):
     K_aom[15]=0.5*K_synth*Alpha_aom[15] # 13CH2D+H->13CH3D
     # Total methane oxidized, ignoring the less abundant isotopologues, net oxidation rate
     Kt= (K_aeom[0]+K_aom[0])*Y[0]+(K_aeom[5]+K_aom[5])*Y[1]+(K_aeom[1]+K_aom[1]+K_aeom[2]+K_aom[2])*Y[2]+(K_aeom[6]+K_aom[6]+K_aeom[7]+K_aom[7])*Y[3]+(K_aeom[3]+K_aom[3]+K_aeom[4]+K_aom[4])*Y[4]
+    -K_aom[8]*Y[10]*Y[15]-K_aom[13]*Y[11]*Y[15]-K_aom[9]*Y[10]*Y[16]-K_aom[10]*Y[12]*Y[15]-K_aom[14]*Y[11]*Y[16]-K_aom[15]*Y[14]*Y[15]-K_aom[11]*Y[12]*Y[16]-K_aom[12]*Y[13]*Y[15]
+    Kf=(K_aom[0])*Y[0]+(K_aom[5])*Y[1]+(K_aom[1]+K_aom[2])*Y[2]+(K_aom[6]+K_aom[7])*Y[3]+(K_aom[3]+K_aom[4])*Y[4]
+    Kr=K_aom[8]*Y[10]*Y[15]+K_aom[13]*Y[11]*Y[15]+K_aom[9]*Y[10]*Y[16]+K_aom[10]*Y[12]*Y[15]+K_aom[14]*Y[3]*Y[16]+K_aom[15]*Y[14]*Y[15]+K_aom[11]*Y[12]*Y[16]+K_aom[12]*Y[13]*Y[15]
     print("Total methane oxidized:", Kt)
     print("Total CH4:", tCH4)
+    print("Reversibility of AOM:", Kr/Kf)
     phi=0.99
     Kin=Kt/phi
     Kout=Kin-Kt
@@ -115,17 +119,17 @@ def dfdt(t,Y):
     dYdt[0]=-(K_aeom[0]+K_aom[0])*Y[0] + K_aom[8]*Y[10]*Y[15] + Kin*Y0[0]/tCH4 - Kout*Y[0]/tCH4 # 12CH4
     dYdt[1]=-(K_aeom[5]+K_aom[5])*Y[1] + K_aom[13]*Y[11]*Y[15] + Kin*Y0[1]/tCH4 - Kout*Y[1]/tCH4 # 13CH4
     dYdt[2]=-(K_aeom[2]+K_aom[2])*Y[2]-(K_aeom[1]+K_aom[1])*Y[2] + K_aom[9]*Y[10]*Y[16] + K_aom[10]*Y[12]*Y[15] + Kin*Y0[2]/tCH4 - Kout*Y[2]/tCH4 # 12CH3D
-    dYdt[3]=-(K_aeom[6]+K_aom[6])*Y[3]-(K_aeom[7]+K_aom[7])*Y[3] + K_aom[14]*Y[3]*Y[16] + K_aom[15]*Y[14]*Y[15] + Kin*Y0[3]/tCH4 - Kout*Y[3]/tCH4 # 13CH3D
+    dYdt[3]=-(K_aeom[6]+K_aom[6])*Y[3]-(K_aeom[7]+K_aom[7])*Y[3] + K_aom[14]*Y[11]*Y[16] + K_aom[15]*Y[14]*Y[15] + Kin*Y0[3]/tCH4 - Kout*Y[3]/tCH4 # 13CH3D
     dYdt[4]=-(K_aeom[3]+K_aom[3])*Y[4]-(K_aeom[4]+K_aom[4])*Y[4] + K_aom[11]*Y[12]*Y[16] + K_aom[12]*Y[13]*Y[15] + Kin*Y0[4]/tCH4 - Kout*Y[4]/tCH4 # 12CH2D2
     # Ignore the triply or more substituted isotopologues
     # Only the AOM reaction is reversible, so only consider the contribution of aom to these species
     dYdt[10]= K_aom[0]*Y[0] + K_aom[1]*Y[2] - K_aom[8]*Y[10]*Y[15] - K_aom[9]*Y[10]*Y[16] # 12CH3
-    dYdt[11]= K_aom[5]*Y[1] + K_aom[6]*Y[3] - K_aom[13]*Y[11]*Y[15] - K_aom[14]*Y[3]*Y[16] # 13CH3
-    dYdt[12]= K_aom[2]*Y[2] + K_aom[3]*Y[4] -  K_aom[10]*Y[12]*Y[15] - K_aom[11]*Y[12]*Y[16] # 12CH2D
-    dYdt[13]= # 12CHD2
-    dYdt[14]= # 13CH2D
-    dYdt[15]= # H
-    dYdt[16]= # D
+    dYdt[11]= K_aom[5]*Y[1] + K_aom[6]*Y[3] - K_aom[13]*Y[11]*Y[15] - K_aom[14]*Y[11]*Y[16] # 13CH3
+    dYdt[12]= K_aom[2]*Y[2] + K_aom[3]*Y[4] - K_aom[10]*Y[12]*Y[15] - K_aom[11]*Y[12]*Y[16] # 12CH2D
+    dYdt[13]= K_aom[4]*Y[4] - K_aom[12]*Y[13]*Y[15] # 12CHD2
+    dYdt[14]= K_aom[7]*Y[3] - K_aom[15]*Y[14]*Y[15] # 13CH2D
+    dYdt[15]= K_aom[0]*Y[0]+K_aom[2]*Y[2]+K_aom[4]*Y[4]+K_aom[5]*Y[1]+K_aom[7]*Y[3]-K_aom[8]*Y[10]*Y[15]-K_aom[10]*Y[12]*Y[15]-K_aom[12]*Y[13]*Y[15]-K_aom[13]*Y[11]*Y[15]-K_aom[15]*Y[14]*Y[15] # H
+    dYdt[16]= K_aom[1]*Y[2]+K_aom[3]*Y[4]+K_aom[6]*Y[3]-K_aom[9]*Y[10]*Y[16]-K_aom[11]*Y[12]*Y[16]-K_aom[14]*Y[11]*Y[16] # D
     return dYdt
 
 #INITIALIZE ARRAYS
@@ -252,13 +256,6 @@ print("   x12C\t =",x12C)
 print("   x13C\t =",x13C)
 print('')
 
-# For the CH4 destruction, we use the sqrt of reduced masses for the bond being ruptured.
-# Rate constants are stored in array K. The reduced mass ratios are stored as fractionation
-# factors that operate on the base rate constant.
-G5=1/Tkinetics
-alpha13Dkinetics=1.0+0.03555020*G5-433.038*G5**2+1.27021e6*G5**3-5.94804e8*G5**4+1.19663e11*G5**5-9.0723e12*G5**6
-alphaD2kinetics=1.0+0.183798*G5-785.483*G5**2+1.056280e6*G5**3+9.37307e7*G5**4-8.91948e10*G5**5+9.90173e12*G5**6
-
 #-------------------
 nrxns=16
 rxns=[
@@ -294,16 +291,51 @@ Alpha_aeom[5]=a_nc10[0]
 Alpha_aeom[6]=a_nc10[2]
 Alpha_aeom[7]=a_nc10[2]
 
-Alpha_aom[0]=1.0 # Set to 1 as default
-Alpha_aom[1]=a_anme_hs[1]
-Alpha_aom[2]=a_anme_hs[1]
-Alpha_aom[3]=a_anme_hs[3]
-Alpha_aom[4]=a_anme_hs[3]
-Alpha_aom[5]=a_anme_hs[0]
-Alpha_aom[6]=a_anme_hs[2]
-Alpha_aom[7]=a_anme_hs[2]
-    
+# Alpha_aom[0]=1.0 # Set to 1 as default
+# Alpha_aom[1]=a_anme_hs[1]
+# Alpha_aom[2]=a_anme_hs[1]
+# Alpha_aom[3]=a_anme_hs[3]
+# Alpha_aom[4]=a_anme_hs[3]
+# Alpha_aom[5]=a_anme_hs[0]
+# Alpha_aom[6]=a_anme_hs[2]
+# Alpha_aom[7]=a_anme_hs[2]
+
+#Primary vs. secondary isotope effects, as in Liu et al., 2023
+Alpha_aom[0]=1.0
+Alpha_aom[1]=0.500
+Alpha_aom[2]=0.968
+Alpha_aom[3]=0.441
+Alpha_aom[4]=0.879
+Alpha_aom[5]=0.995
+Alpha_aom[6]=0.490
+Alpha_aom[7]=0.949
+
+# For the CH4 destruction, we use the sqrt of reduced masses for the bond being ruptured.
+# Rate constants are stored in array K. The reduced mass ratios are stored as fractionation
+# factors that operate on the base rate constant.
+G5=1/Tkinetics
+alpha13Dkinetics=1.0+0.03555020*G5-433.038*G5**2+1.27021e6*G5**3-5.94804e8*G5**4+1.19663e11*G5**5-9.0723e12*G5**6
+alphaD2kinetics=1.0+0.183798*G5-785.483*G5**2+1.056280e6*G5**3+9.37307e7*G5**4-8.91948e10*G5**5+9.90173e12*G5**6
+
+#Consider equilibrium isotope effects for both bulk and clumping
+alpha_13CH4_eq = np.exp(2.1/1000) #Data from Gropp et al. (2021, GCA) @ 25 C
+alpha_12CH3D_P_eq = np.exp(-635.8/1000) 
+alpha_12CH3D_S_eq = np.exp(55.4/1000)
+gamma_13CH3D_P_eq = 1.0/alpha13Dkinetics #0.9943
+gamma_13CH3D_S_eq = 0.9998
+gamma_12CH2D2_P_eq = 1.0/alphaD2kinetics #0.9818
+gamma_12CH2D2_S_eq = 0.9972
+
+Alpha_aom[8]=Alpha_aom[0]                                                              # Alpha_aom[0] # for reversibility
+Alpha_aom[9]=Alpha_aom[1]/alpha_12CH3D_P_eq                                            # Alpha[1] #for reversibility
+Alpha_aom[10]=Alpha_aom[2]/alpha_12CH3D_S_eq                                           # Alpha[2] #for reversibility
+Alpha_aom[11]=Alpha_aom[3]/(gamma_12CH2D2_P_eq*alpha_12CH3D_P_eq*alpha_12CH3D_S_eq)    # Alpha[3]*alphaD2kinetics #for reversibility
+Alpha_aom[12]=Alpha_aom[4]/(gamma_12CH2D2_S_eq*alpha_12CH3D_S_eq*alpha_12CH3D_S_eq)    # Alpha[4]*alphaD2kinetics #for reversibility
+Alpha_aom[13]=Alpha_aom[5]/alpha_13CH4_eq                                              # Alpha[5] #for reversibility
+Alpha_aom[14]=Alpha_aom[6]/(gamma_13CH3D_P_eq*alpha_13CH4_eq*alpha_12CH3D_P_eq)        # Alpha[6]*alpha13Dkinetics #for reversibility
+Alpha_aom[15]=Alpha_aom[7]/(gamma_13CH3D_S_eq*alpha_13CH4_eq*alpha_12CH3D_S_eq)        # Alpha[7]*alpha13Dkinetics #for reversibility
 print('')
+
 i=0
 while i < len(Alpha_aeom):
     print("Alpha AeOM for reaction %d.\t %s\t= %.6f" %(i,rxns[i],Alpha_aeom[i]))
