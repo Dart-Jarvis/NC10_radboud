@@ -28,6 +28,9 @@ equib = pd.read_csv('equib.csv')
 T0=data[data['label']=='0'] # T0, tank gas and controls
 NC10=data[data['label']=='1'] # NC10
 NC10_ANME=data[data['label']=='2'] # NC10+ANME
+ANME2d=data[data['label']=='3'] # ANME-2d
+Oct=data[data['label']=='4'] # pMMO inhibited experiments
+BES=data[data['label']=='5'] # MCR inhibited experiments
 AeOM_P=data[data['label']=='P'] # Previous data from Li et al., 2024
 AeOM_P1=data[data['label']=='P1'] # Previous data from Krause et al., 2022
 AeOM_P2=data[data['label']=='P2'] # wang et al., 2016
@@ -40,6 +43,9 @@ mask={
     "T0": 1,
     "NC10":1,
     "NC10+ANME":1,
+    "ANME2d":1,
+    "Oct":1,
+    "BES":0,
     "previous data":1
 }
 
@@ -52,22 +58,31 @@ for i in range(len(equib)):
 
 def quick_plot(ax,x,y,xerr,yerr,msk):
     if msk["T0"]==1:
-        ax.errorbar(T0[x],T0[y],xerr=T0[xerr],yerr=T0[yerr], markersize=40,label=r'T0', fmt='*', 
+        ax.errorbar(T0[x],T0[y],xerr=T0[xerr],yerr=T0[yerr], markersize=35,label=r'T0', fmt='*', 
                     markerfacecolor='purple', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
     if msk["NC10"]==1:
-        ax.errorbar(NC10[x],NC10[y],xerr=NC10[xerr],yerr=NC10[yerr], markersize=24,label=r'NC10', fmt='o', 
+        ax.errorbar(NC10[x],NC10[y],xerr=NC10[xerr],yerr=NC10[yerr], markersize=18,label=r'NC10', fmt='o', 
                     markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
     if msk["NC10+ANME"]==1:
-        ax.errorbar(NC10_ANME[x],NC10_ANME[y],xerr=NC10_ANME[xerr],yerr=NC10_ANME[yerr], markersize=24,label=r'NC10+ANME', fmt='^', 
+        ax.errorbar(NC10_ANME[x],NC10_ANME[y],xerr=NC10_ANME[xerr],yerr=NC10_ANME[yerr], markersize=18,label=r'NC10+ANME', fmt='^', 
                     markerfacecolor='blue', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+    if msk["ANME2d"]==1:
+        ax.errorbar(ANME2d[x],ANME2d[y],xerr=ANME2d[xerr],yerr=ANME2d[yerr], markersize=18,label=r'ANME', fmt='s', 
+                    markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+    if msk["Oct"]==1:
+        ax.errorbar(Oct[x],Oct[y],xerr=Oct[xerr],yerr=Oct[yerr], markersize=18,label=r'NC10+ANME (pMMO inhibited)', fmt='D', 
+                    markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+    if msk["BES"]==1:
+        ax.errorbar(BES[x],BES[y],xerr=BES[xerr],yerr=BES[yerr], markersize=18,label=r'NC10+ANME (mcr inhibited)', fmt='d', 
+                    markerfacecolor='purple', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
     if msk["previous data"]==1:
-        ax.errorbar(AeOM_m[x],AeOM_m[y],xerr=AeOM_m[xerr],yerr=AeOM_m[yerr], markersize=16,label=r'AeOM (Li et al., 2024)', fmt='o', 
+        ax.errorbar(AeOM_m[x],AeOM_m[y],xerr=AeOM_m[xerr],yerr=AeOM_m[yerr], markersize=18,label=r'AeOM (Li et al., 2024)', fmt='o', 
                     markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-        ax.errorbar(AeOM_P1[x],AeOM_P1[y],xerr=AeOM_P1[xerr],yerr=AeOM_P1[yerr], markersize=16,label=r'AeOM (Krause et al., 2022)', fmt='^', 
+        ax.errorbar(AeOM_P1[x],AeOM_P1[y],xerr=AeOM_P1[xerr],yerr=AeOM_P1[yerr], markersize=18,label=r'AeOM (Krause et al., 2022)', fmt='^', 
                     markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)  
-        ax.errorbar(AeOM_P2[x],AeOM_P2[y],xerr=AeOM_P2[xerr],yerr=AeOM_P2[yerr], markersize=16,label=r'AeOM (Wang et al., 2016)', fmt='D', 
+        ax.errorbar(AeOM_P2[x],AeOM_P2[y],xerr=AeOM_P2[xerr],yerr=AeOM_P2[yerr], markersize=18,label=r'AeOM (Wang et al., 2016)', fmt='D', 
                     markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)          
-        ax.errorbar(AOM_P[x],AOM_P[y],xerr=AOM_P[xerr],yerr=AOM_P[yerr], markersize=16,label=r'AOM (Liu et al., 2023)', fmt='s', 
+        ax.errorbar(AOM_P[x],AOM_P[y],xerr=AOM_P[xerr],yerr=AOM_P[yerr], markersize=18,label=r'AOM (Liu et al., 2023)', fmt='s', 
                     markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
       
 
@@ -77,6 +92,8 @@ quick_plot(ax2,"d13C","dD","cse","dse",mask)
 ax1.legend(fontsize=20)
 ax1.set_xlabel('$\Delta^{13}$CH$_3$D (\u2030)', fontdict = font_labels)
 ax1.set_ylabel('$\Delta^{12}$CH$_2$D$_2$ (\u2030)', fontdict = font_labels)
+ax1.set_ylim([-23,50])
+ax1.set_xlim([-4,16])
 ax1.yaxis.set_minor_locator(MultipleLocator(2))
 ax1.xaxis.set_minor_locator(MultipleLocator(1))
 ax1.tick_params(which='major',direction='out', top=True, right=True, length=8, width=2.5, labelsize=32)
@@ -100,6 +117,18 @@ aD_nc10=0.8019
 aCD_nc10=0.7843	
 aDD_nc10=0.6296
 
+# OH radical ab initio (Haghnegahdar et al., 2017)
+aC_OH=1/1.0063
+aD_OH=1/1.32
+aCD_OH=1/1.33
+aDD_OH=1/1.92
+
+# Cl radical ab initio
+aC_Cl=1/1.028
+aD_Cl=1/1.41
+aCD_Cl=1/1.46
+aDD_Cl=1/2.2
+
 # sMMO ab initio model
 aC_smo_model=0.98704
 aD_smo_model=0.72548
@@ -113,55 +142,34 @@ aCD_smo_model_nc= 0.7336593668868868
 aDD_smo_model_nc= 0.512046881532376
 
 # The isotope fractionation factors in previous studies
-# Li et al., 2024, 37C, 27C, 21C, Wang et al., 2016 (30 oC, 37 oC), Krause et al., 2022
-alphas=np.array([[aC_nc10,aC_smo_model,aC_smo_model_nc, 0.9671, 0.9713, 0.9757, 0.988, 0.978, 0.98485],
-        [aD_nc10,aD_smo_model,aD_smo_model_nc,0.6967, 0.7452, 0.7742, 0.8950,0.7980,0.7265],
-        [aCD_nc10,aCD_smo_model,aCD_smo_model_nc,0.6716, 0.7249, 0.7580, 0.8847,0.7804,0.7141],
-        [aDD_nc10,aDD_smo_model,aDD_smo_model_nc,0.4309, 0.5291, 0.5841, 0, 0, 0.4757]])
+# Li et al., 2024, 37C, 27C, 21C, Wang et al., 2016 (30 oC, 37 oC), Krause et al., 2022, Haghneghadar et al., 2017, OH and Cl
+alphas=np.array([[aC_nc10,aC_smo_model,aC_smo_model_nc, 0.9671, 0.9713, 0.9757, 0.988, 0.978, 0.98485, aC_OH, aC_Cl],
+        [aD_nc10,aD_smo_model,aD_smo_model_nc,0.6967, 0.7452, 0.7742, 0.8950,0.7980,0.7265, aD_OH, aD_Cl],
+        [aCD_nc10,aCD_smo_model,aCD_smo_model_nc,0.6716, 0.7249, 0.7580, 0.8847,0.7804,0.7141, aCD_OH, aCD_Cl],
+        [aDD_nc10,aDD_smo_model,aDD_smo_model_nc,0.4309, 0.5291, 0.5841, 0, 0, 0.4757, aDD_OH, aDD_Cl]])
 
 # T0 -41.098	0.04	-168.932	0.032	2.495	0.137	7.722	0.791 
 dC0=-41.098
 dD0=-168.932
 Dcd0=2.495
 Ddd0=7.722
-# mixing of two processes
-r=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
-f=np.arange(0.4,1.1,0.1)
-# aC_mix=np.zeros(len(f))
-# aD_mix=np.zeros(len(f))
-# aCD_mix=np.zeros(len(f))
-# aDD_mix=np.zeros(len(f))
 
-# Resulting isotope signals
-dC=np.zeros((len(r),len(f)))
-dD=np.zeros((len(r),len(f)))
-Dcd=np.zeros((len(r),len(f)))
-Ddd=np.zeros((len(r),len(f)))
-# Results from ab initio calculations, 0-3 are corrected, 4-7 are not corrected
-smmo_m=np.zeros((len(f),8))
-
-# Assume pMMO oxidized 1-f1 methane and mcr oxidize f1-f2 methane
-for i in range(len(r)):
-    for j in range(len(f)):
-    # Calculate f1, f2 first, it depends on the relative porportions of mcr and pMMO oxidized methane (f[i])
-    # as well as the total methane oxidized (r[j])
-    # r=1 --> total mcr oxidation, r=0 --> total pMMO oxidation
-        f1=1-(1-f[j])*r[i]
-        f2=f[j]/f1
-        dC[i,j] = ((dC0+1000)*f1**(aC_anme_hs-1))*f2**(aC_nc10-1)-1000
-        dD[i,j] = ((dD0+1000)*f1**(aD_anme_hs-1))*f2**(aD_nc10-1)-1000
-        Dcd[i,j] = Dcd0+1000*(aCD_anme_hs-aC_anme_hs-aD_anme_hs+1)*np.log(f1)+1000*(aCD_nc10-aC_nc10-aD_nc10+1)*np.log(f2)
-        Ddd[i,j] = Ddd0+1000*(aDD_anme_hs-2*aD_anme_hs+1)*np.log(f1)+1000*(aDD_nc10-2*aD_nc10+1)*np.log(f2)
-
-for i in range(len(f)):
-    smmo_m[i,0]=(dC0+1000)*f[i]**(aC_smo_model-1)-1000 # Carbon isotope
-    smmo_m[i,1]=(dD0+1000)*f[i]**(aD_smo_model-1)-1000 # Hydrogen isotope
-    smmo_m[i,2]=Dcd0+1000*(aCD_smo_model-aC_smo_model-aD_smo_model+1)*np.log(f[i]) # 13CH3D
-    smmo_m[i,3]=Ddd0+1000*(aDD_smo_model-2*aD_smo_model+1)*np.log(f[i]) # 12CH2D2
-    smmo_m[i,4]=(dC0+1000)*f[i]**(aC_smo_model_nc-1)-1000 # Carbon isotope
-    smmo_m[i,5]=(dD0+1000)*f[i]**(aD_smo_model_nc-1)-1000 # Hydrogen isotope
-    smmo_m[i,6]=Dcd0+1000*(aCD_smo_model_nc-aC_smo_model_nc-aD_smo_model_nc+1)*np.log(f[i]) # 13CH3D
-    smmo_m[i,7]=Ddd0+1000*(aDD_smo_model_nc-2*aD_smo_model_nc+1)*np.log(f[i]) # 12CH2D2
+f=np.arange(0.2,1.1,0.1)
+def plt_model(data):
+    m=np.zeros([len(f),4])
+    C0,D0,cd0,dd0,aC_model,aD_model,aCD_model,aDD_model=data
+    for i in range(len(f)):
+        m[i,0]=(C0+1000)*f[i]**(aC_model-1)-1000 # Carbon isotope
+        m[i,1]=(D0+1000)*f[i]**(aD_model-1)-1000 # Hydrogen isotope
+        m[i,2]=cd0+1000*(aCD_model-aC_model-aD_model+1)*np.log(f[i]) # 13CH3D
+        m[i,3]=dd0+1000*(aDD_model-2*aD_model+1)*np.log(f[i]) # 12CH2D2
+    return m
+model_par=[dC0,dD0,Dcd0,Ddd0,aC_smo_model,aD_smo_model,aCD_smo_model,aDD_smo_model]
+smmo_m=plt_model(model_par)
+model_par=[dC0,dD0,Dcd0,Ddd0,aC_OH,aD_OH,aCD_OH,aDD_OH]
+OH_m=plt_model(model_par)
+model_par=[dC0,dD0,Dcd0,Ddd0,aC_Cl,aD_Cl,aCD_Cl,aDD_Cl]
+Cl_m=plt_model(model_par)
 
 fig3,ax3=plt.subplots(figsize=(12,12))
 fig4,ax4=plt.subplots(figsize=(12,12))
@@ -173,22 +181,24 @@ ax3.plot(equib['D13CH3D'],equib['D12CH2D2'],'-k', label = 'Equilibrium', linewid
 #     ax3.plot(Dcd[i,:],Ddd[i,:], 'ro--', linewidth=3.0, alpha=c[i])
 quick_plot(ax3,"D13CH3D","D12CH2D2","cdse","ddse",mask)
 ax3.plot(smmo_m[:,2],smmo_m[:,3], 'ro--',linewidth=4.0, label="Ab initio (Wigner correction)")
-ax3.plot(smmo_m[:,6],smmo_m[:,7], 'ko--',linewidth=4.0, label="Ab initio (no correction)")
+# ax3.plot(smmo_m[:,6],smmo_m[:,7], 'ko--',linewidth=4.0, label="Ab initio (no correction)")
+ax3.plot(OH_m[:,2],OH_m[:,3],"bo--",linewidth=4.0, label="OH radical")
+ax3.plot(Cl_m[:,2],Cl_m[:,3],"go-.",linewidth=4.0, label="Cl radical")
 ax3.set_xlim([-5,10])
 ax3.set_ylim([-36,28])
-ax3.legend(fontsize=20)
+ax3.legend(fontsize=20, bbox_to_anchor=(1.6,0.8))
 ax3.set_xlabel('$\Delta^{13}$CH$_3$D (\u2030)', fontdict = font_labels)
 ax3.set_ylabel('$\Delta^{12}$CH$_2$D$_2$ (\u2030)', fontdict = font_labels)
-ax3.yaxis.set_minor_locator(MultipleLocator(4))
+ax3.yaxis.set_minor_locator(MultipleLocator(2))
 ax3.xaxis.set_minor_locator(MultipleLocator(0.5))
 ax3.tick_params(which='major',direction='out', top=True, right=True, length=8, width=2.5, labelsize=32)
 ax3.tick_params(which='minor',direction='out', top=True, right=True, length=4, width=2.0, labelsize=32)
 # Bulk isotope
-# for i in range(len(r)):
-#     ax4.plot(dC[i,:],dD[i,:], 'ro--', linewidth=3.0, alpha=c[i])
 quick_plot(ax4,"d13C","dD","cse","dse",mask)
 ax4.plot(smmo_m[:,0],smmo_m[:,1], 'ro--',linewidth=4.0, label="Ab initio (Wigner correction)")
-ax4.plot(smmo_m[:,4],smmo_m[:,5], 'ko--',linewidth=4.0, label="Ab initio (No correction)")
+# ax4.plot(smmo_m[:,4],smmo_m[:,5], 'ko--',linewidth=4.0, label="Ab initio (No correction)")
+ax4.plot(OH_m[:,0],OH_m[:,1],"bo--",linewidth=4.0, label="OH radical")
+ax4.plot(Cl_m[:,0],Cl_m[:,1],"go-.",linewidth=4.0, label="Cl radical")
 ax4.set_xlabel('$\delta^{13}$C (\u2030)', fontdict = font_labels)
 ax4.set_ylabel('$\delta$D (\u2030)', fontdict = font_labels)
 ax4.yaxis.set_minor_locator(MultipleLocator(20))
@@ -212,6 +222,15 @@ def quick_plot_f(ax,y,ye,msk):
     if msk["NC10+ANME"]==1:
         ax.errorbar(NC10_ANME['f'],NC10_ANME[y], xerr=NC10_ANME['fse'], yerr=NC10_ANME[ye], markersize=24,label=r'NC10+ANME', fmt='^', 
                     markerfacecolor='blue', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+    if msk["ANME2d"]==1:
+        ax.errorbar(ANME2d['f'],ANME2d[y], xerr=ANME2d['fse'], yerr=ANME2d[ye], markersize=24,label=r'ANME-2d', fmt='s', 
+                    markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+    if msk["Oct"]==1:
+        ax.errorbar(Oct["f"],Oct[y],xerr=Oct["fse"],yerr=Oct[ye], markersize=18,label=r'NC10+ANME (pMMO inhibited)', fmt='D', 
+                    markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+    if msk["BES"]==1:
+        ax.errorbar(BES["f"],BES[y],xerr=BES["fse"],yerr=BES[ye], markersize=18,label=r'NC10+ANME (mcr inhibited)', fmt='d', 
+                    markerfacecolor='purple', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
     if msk["previous data"]==1:
         ax.errorbar(AeOM_m['f'][AeOM_m['f']>=0.4],AeOM_m[y], xerr=AeOM_m['fse'], yerr=AeOM_m[ye], markersize=16,label=r'AeOM (Li et al., 2024)', fmt='o', 
                     markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='gray', elinewidth=2.5, zorder=-1)
@@ -219,6 +238,8 @@ def quick_plot_f(ax,y,ye,msk):
                     markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='gray', elinewidth=2.5, zorder=-1)
         ax.errorbar(AeOM_P2['f'],AeOM_P2[y], xerr=AeOM_P2['fse'], yerr=AeOM_P2[ye], markersize=16,label=r'AeOM (Wang et al., 2016)', fmt='D', 
                     markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='gray', elinewidth=2.5, zorder=-1)    
+        ax.errorbar(AOM_P['f'],AOM_P[y], xerr=AOM_P['fse'], yerr=AOM_P[ye], markersize=16,label=r'AOM (Liu et al., 2023)', fmt='s', 
+                    markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='gray', elinewidth=2.5, zorder=-1)   
 
 quick_plot_f(ax5,"D13CH3D","cdse",mask)
 # for i in range(len(r)):
