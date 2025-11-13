@@ -45,7 +45,7 @@ mask={
     "NC10+ANME":1,
     "ANME2d":1,
     "Oct":1,
-    "BES":0,
+    "BES":1,
     "previous data":1
 }
 
@@ -58,23 +58,23 @@ for i in range(len(equib)):
 
 def quick_plot(ax,x,y,xerr,yerr,msk):
     if msk["T0"]==1:
-        ax.errorbar(T0[x],T0[y],xerr=T0[xerr],yerr=T0[yerr], markersize=35,label=r'T0', fmt='*', 
+        ax.errorbar(T0[x],T0[y],xerr=T0[xerr],yerr=T0[yerr], markersize=35,label=r'Tank gas', fmt='*', 
                     markerfacecolor='purple', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
     if msk["NC10"]==1:
         ax.errorbar(NC10[x],NC10[y],xerr=NC10[xerr],yerr=NC10[yerr], markersize=18,label=r'NC10', fmt='o', 
-                    markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+                    markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
     if msk["NC10+ANME"]==1:
         ax.errorbar(NC10_ANME[x],NC10_ANME[y],xerr=NC10_ANME[xerr],yerr=NC10_ANME[yerr], markersize=18,label=r'NC10+ANME', fmt='^', 
-                    markerfacecolor='blue', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+                    markerfacecolor='blue', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
     if msk["ANME2d"]==1:
         ax.errorbar(ANME2d[x],ANME2d[y],xerr=ANME2d[xerr],yerr=ANME2d[yerr], markersize=18,label=r'ANME', fmt='s', 
-                    markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+                    markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
     if msk["Oct"]==1:
         ax.errorbar(Oct[x],Oct[y],xerr=Oct[xerr],yerr=Oct[yerr], markersize=18,label=r'NC10+ANME (pMMO inhibited)', fmt='D', 
                     markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
     if msk["BES"]==1:
-        ax.errorbar(BES[x],BES[y],xerr=BES[xerr],yerr=BES[yerr], markersize=18,label=r'NC10+ANME (mcr inhibited)', fmt='d', 
-                    markerfacecolor='purple', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+        ax.errorbar(BES[x],BES[y],xerr=BES[xerr],yerr=BES[yerr], markersize=18,label=r'NC10+ANME (mcr inhibited)', fmt='v', 
+                    markerfacecolor='cyan', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
     if msk["previous data"]==1:
         ax.errorbar(AeOM_m[x],AeOM_m[y],xerr=AeOM_m[xerr],yerr=AeOM_m[yerr], markersize=18,label=r'AeOM (Li et al., 2024)', fmt='o', 
                     markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
@@ -82,14 +82,14 @@ def quick_plot(ax,x,y,xerr,yerr,msk):
                     markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)  
         ax.errorbar(AeOM_P2[x],AeOM_P2[y],xerr=AeOM_P2[xerr],yerr=AeOM_P2[yerr], markersize=18,label=r'AeOM (Wang et al., 2016)', fmt='D', 
                     markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)          
-        ax.errorbar(AOM_P[x],AOM_P[y],xerr=AOM_P[xerr],yerr=AOM_P[yerr], markersize=18,label=r'AOM (Liu et al., 2023)', fmt='s', 
+        ax.errorbar(AOM_P[x],AOM_P[y],xerr=AOM_P[xerr],yerr=AOM_P[yerr], markersize=18,label=r'S-AOM (Liu et al., 2023)', fmt='s', 
                     markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
       
 
 quick_plot(ax1,"D13CH3D","D12CH2D2","cdse","ddse",mask)
 quick_plot(ax2,"d13C","dD","cse","dse",mask)
 
-ax1.legend(fontsize=20)
+ax1.legend(fontsize=18)
 ax1.set_xlabel('$\Delta^{13}$CH$_3$D (\u2030)', fontdict = font_labels)
 ax1.set_ylabel('$\Delta^{12}$CH$_2$D$_2$ (\u2030)', fontdict = font_labels)
 ax1.set_ylim([-23,50])
@@ -218,19 +218,19 @@ def quick_plot_f(ax,y,ye,msk):
                     markerfacecolor='purple', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
     if msk["NC10"]==1:
         ax.errorbar(NC10['f'],NC10[y], xerr=NC10['fse'], yerr=NC10[ye], markersize=24,label=r'NC10', fmt='o', 
-                    markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+                    markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
     if msk["NC10+ANME"]==1:
         ax.errorbar(NC10_ANME['f'],NC10_ANME[y], xerr=NC10_ANME['fse'], yerr=NC10_ANME[ye], markersize=24,label=r'NC10+ANME', fmt='^', 
-                    markerfacecolor='blue', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+                    markerfacecolor='blue', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
     if msk["ANME2d"]==1:
         ax.errorbar(ANME2d['f'],ANME2d[y], xerr=ANME2d['fse'], yerr=ANME2d[ye], markersize=24,label=r'ANME-2d', fmt='s', 
-                    markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+                    markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
     if msk["Oct"]==1:
         ax.errorbar(Oct["f"],Oct[y],xerr=Oct["fse"],yerr=Oct[ye], markersize=18,label=r'NC10+ANME (pMMO inhibited)', fmt='D', 
                     markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
     if msk["BES"]==1:
-        ax.errorbar(BES["f"],BES[y],xerr=BES["fse"],yerr=BES[ye], markersize=18,label=r'NC10+ANME (mcr inhibited)', fmt='d', 
-                    markerfacecolor='purple', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+        ax.errorbar(BES["f"],BES[y],xerr=BES["fse"],yerr=BES[ye], markersize=18,label=r'NC10+ANME (mcr inhibited)', fmt='v', 
+                    markerfacecolor='cyan', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
     if msk["previous data"]==1:
         ax.errorbar(AeOM_m['f'][AeOM_m['f']>=0.4],AeOM_m[y], xerr=AeOM_m['fse'], yerr=AeOM_m[ye], markersize=16,label=r'AeOM (Li et al., 2024)', fmt='o', 
                     markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='gray', elinewidth=2.5, zorder=-1)
