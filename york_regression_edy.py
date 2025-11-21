@@ -32,13 +32,9 @@ print('---------------------------------------')
 print('Requires a data file formatted as follows: x xerr y yerr corr_coef')
 print(' ...readable formats include .dat, .txt. and .csv')
 print('')
-input_line = input("ENTER the input filename including the extension name:")
-file_1_path = input_line
-print('Your data file is: ',file_1_path,'\n')
 
 # Read the file into tables 
-data_table = pd.read_csv(file_1_path, sep=' ',header=None)
-data_table.columns = ['x','sigx','y','sigy','r']
+data_table = pd.read_csv("york_input.csv")
 
 minx=min(data_table['x'])
 print('Minimum x =',minx)
