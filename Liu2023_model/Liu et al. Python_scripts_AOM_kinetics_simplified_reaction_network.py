@@ -25,7 +25,7 @@ nmolec=1.0e10
 num=5000  # number of time steps
 
 reversible=True # True
-factor=4e-10 # e.g., 4.8e-6, k_reverse rate constant relative to oxidation rate constant
+factor=6e-10 # e.g., 4.8e-6, k_reverse rate constant relative to oxidation rate constant
 t_lower=0.0001 # minimum time for time interval
 t_upper=1 # maximum time for time interval, dimensionless
 
@@ -241,13 +241,13 @@ Alpha=np.ones(nrxns)
 #Primary vs. secondary isotope effects
 # pMMO inhibitor 0.9548 0.5977	0.5564	0.2468 0.9750 0.6908 
 # NC10+ANME 0.9779	0.8023	0.7832	0.6238	0.9983	0.9691
-Alpha_D_primary = 0.8023 #arbitrary value, closed to the one reported by Scheller et al. (2013)
-Alpha_D_eff = 0.8023
-Alpha_D2_eff = 0.6238
-Alpha_13_eff = 0.9779
-Alpha_13D_eff = 0.7832
-Gamma_13D_eff = 0.9983
-Gamma_D2_eff = 0.9691
+Alpha_D_primary = 0.8177 #arbitrary value, closed to the one reported by Scheller et al. (2013)
+Alpha_D_eff = 0.8177
+Alpha_D2_eff = 0.667
+Alpha_13_eff = 0.9762
+Alpha_13D_eff = 0.7952
+Gamma_13D_eff = 0.9962
+Gamma_D2_eff = 0.97756
 
 Alpha[0]=1.0
 Alpha[1]=Alpha_D_primary                   #CH3D  --> D
