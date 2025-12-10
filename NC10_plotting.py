@@ -411,6 +411,36 @@ plt.grid(axis='y', linestyle='--', alpha=0.5)
 plt.tight_layout()
 plt.show()
 
+# Model curves
+model_data=pd.read_csv("model_output.csv")
+fig_bulk_model,ax_bulk_model=plt.subplots(figsize=(8,8))
+fig_clump_model,ax_clump_model=plt.subplots(figsize=(8,8))
+
+ax_clump_model.plot(equib['D13CH3D'],equib['D12CH2D2'],'-k', label = 'Equilibrium', linewidth = 2.5, markersize = 15)
+for i in range(len(equib)):
+    if equib['p'].iloc[i]==1:
+        ax_clump_model.scatter(equib['D13CH3D'].iloc[i], equib['D12CH2D2'].iloc[i],color='black',s=60)
+
+ax_clump_model.errorbar(ANME2d["D13CH3D"],ANME2d["D12CH2D2"],xerr=ANME2d["cdse"],yerr=ANME2d["ddse"], markersize=14,label=r'N-AOM', fmt='s',
+        markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
+ax_clump_model.errorbar(AOM_P["D13CH3D"],AOM_P["D12CH2D2"],xerr=AOM_P["cdse"],yerr=AOM_P["ddse"], markersize=14,label=r'S-AOM', fmt='s', 
+        markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
+ax_bulk_model.errorbar(ANME2d["d13C"],ANME2d["dD"],xerr=ANME2d["cse"],yerr=ANME2d["dse"], markersize=14,label=r'N-AOM', fmt='s',
+        markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
+ax_bulk_model.errorbar(AOM_P["d13C"],AOM_P["dD"],xerr=AOM_P["cse"],yerr=AOM_P["dse"], markersize=14,label=r'S-AOM', fmt='s', 
+        markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
+for i in range(5):
+    ax_clump_model.plot(model_data.iloc[1::,4*i+2].astype(float),model_data.iloc[1::,4*i+3].astype(float), linewidth=2.0, color="black", alpha=0.12*i+0.4)
+    ax_bulk_model.plot(model_data.iloc[1::,4*i].astype(float),model_data.iloc[1::,4*i+1].astype(float), linewidth=2.0, color="black", alpha=0.12*i+0.4)
+
+ax_clump_model.set_ylim([-25,100])
+ax_clump_model.set_xlim([-5,50])
+set_axis(ax_clump_model,'$\Delta^{13}$CH$_3$D (\u2030)','$\Delta^{12}$CH$_2$D$_2$ (\u2030)')
+ax_clump_model.legend(fontsize=16)
+set_axis(ax_bulk_model,'$\delta^{13}$C (\u2030)','$\delta$D (\u2030)')
+
+
+
 if mask["save_fig"]==1:
     fig1.savefig('clumped_sum.pdf', bbox_inches='tight')
     fig2.savefig('bulk_sum.pdf', bbox_inches='tight')
@@ -420,3 +450,5 @@ if mask["save_fig"]==1:
     figdf.savefig('frac_d.pdf', bbox_inches='tight')
     figcdf.savefig('frac_cd.pdf', bbox_inches='tight')
     figddf.savefig('frac_dd.pdf', bbox_inches='tight')
+    fig_bulk_model.savefig('bulk_model.pdf', bbox_inches='tight')
+    fig_clump_model.savefig('clump_model.pdf', bbox_inches='tight')

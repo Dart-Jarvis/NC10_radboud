@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import math as math
+import pandas as pd
 from math import sin as sin
 from math import cos as cos
 from math import asin as asin
@@ -25,9 +26,9 @@ nmolec=1.0e10
 num=5000  # number of time steps
 
 reversible=True # True
-factor=6e-10 # e.g., 4.8e-6, k_reverse rate constant relative to oxidation rate constant
+factor=1e-7 # e.g., 4.8e-6, k_reverse rate constant relative to oxidation rate constant
 t_lower=0.0001 # minimum time for time interval
-t_upper=1 # maximum time for time interval, dimensionless
+t_upper=20 # maximum time for time interval, dimensionless
 
 Tkinetics=293.15 # 20 C, T for AOM kinetics and re-equilibration in K
 T=200.0 # Equilibration temperature of initial methane in C, OVERRIDEN BY INPUT FILE
@@ -241,13 +242,24 @@ Alpha=np.ones(nrxns)
 #Primary vs. secondary isotope effects
 # pMMO inhibitor 0.9548 0.5977	0.5564	0.2468 0.9750 0.6908 
 # NC10+ANME 0.9779	0.8023	0.7832	0.6238	0.9983	0.9691
-Alpha_D_primary = 0.8177 #arbitrary value, closed to the one reported by Scheller et al. (2013)
-Alpha_D_eff = 0.8177
-Alpha_D2_eff = 0.667
-Alpha_13_eff = 0.9762
-Alpha_13D_eff = 0.7952
-Gamma_13D_eff = 0.9962
-Gamma_D2_eff = 0.97756
+
+# Value for ANME 2d
+Alpha_D_primary = 0.7819
+Alpha_D_eff = 0.7819
+Alpha_D2_eff = 0.5925
+Alpha_13_eff = 0.9745
+Alpha_13D_eff = 0.7559
+Gamma_13D_eff = 0.9921
+Gamma_D2_eff = 0.9690
+
+# Value for pMMO inhibited experiment
+# Alpha_D_primary = 0.5977
+# Alpha_D_eff = 0.5977
+# Alpha_D2_eff = 0.2468
+# Alpha_13_eff = 0.9548
+# Alpha_13D_eff = 0.5564
+# Gamma_13D_eff = 0.9750
+# Gamma_D2_eff = 0.6908
 
 Alpha[0]=1.0
 Alpha[1]=Alpha_D_primary                   #CH3D  --> D
@@ -432,6 +444,9 @@ D12CH2D2_EQ=1000.0*(alphaD2ref-1.0)
 
 #------------------------------------------------------------------------------------------------
 # MAKE PLOTS
+data = pd.read_csv('isotope_data.csv')
+AOM_P=data[data['label']=='AOM_P']
+ANME2d=data[data['label']=='3']
 #Molecule abundances vs time
 plt.figure("N vs time",figsize=(7.0,5.0))
 plt.plot(soln.t,soln.y[0],color='black',label='CH$_4$')
@@ -575,6 +590,8 @@ plt.savefig('d13CH3D_vs_F_smpl',bbox_inches='tight',dpi=1000)
 #dD CH4 vs d13C CH4
 plt.figure("dD vs d13C",figsize=(7.0,5.0))
 plt.plot(d13C_CH4_t[1:num-1],dD_CH4_t[1:num-1],linestyle='-',color='black',label='Model')
+plt.scatter(AOM_P['d13C'],AOM_P['dD'],color="red",label="S-AOM")
+plt.scatter(ANME2d['d13C'],ANME2d['dD'],color="black",label="N-AOM")
 plt.ylabel('$\delta$D',fontsize=14,labelpad=12)
 plt.xlabel('$\delta^{13}$C',fontsize=14,labelpad=12)
 plt.yticks(fontsize=12)
@@ -587,6 +604,8 @@ plt.savefig('dD_vs_d13C_CH4_smpl',bbox_inches='tight',dpi=1000)
 plt.figure("D12CH2D2 vs D13CH3D",figsize=(7.0,5.0))
 plt.plot(D13CH3D_EQ,D12CH2D2_EQ,color='grey',label='Equilibrium')
 plt.plot(D13CH3D_t,D12CH2D2_t,linestyle='-',color='black',label='Model')
+plt.scatter(AOM_P['D13CH3D'],AOM_P['D12CH2D2'],color="red",label="S-AOM")
+plt.scatter(ANME2d['D13CH3D'],ANME2d['D12CH2D2'],color="black",label="N-AOM")
 plt.ylabel('$\Delta^{12}$CH$_2$D$_2$',fontsize=14,labelpad=12)
 plt.xlabel('$\Delta^{13}$CH$_3$D',labelpad=11,fontsize=14)
 plt.xticks(fontsize=12)
