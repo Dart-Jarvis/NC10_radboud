@@ -430,8 +430,8 @@ ax_bulk_model.errorbar(ANME2d["d13C"],ANME2d["dD"],xerr=ANME2d["cse"],yerr=ANME2
 ax_bulk_model.errorbar(AOM_P["d13C"],AOM_P["dD"],xerr=AOM_P["cse"],yerr=AOM_P["dse"], markersize=14,label=r'S-AOM', fmt='s', 
         markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
 for i in range(5):
-    ax_clump_model.plot(model_data.iloc[1::,4*i+2].astype(float),model_data.iloc[1::,4*i+3].astype(float), linewidth=2.0, color="black", alpha=0.12*i+0.4)
-    ax_bulk_model.plot(model_data.iloc[1::,4*i].astype(float),model_data.iloc[1::,4*i+1].astype(float), linewidth=2.0, color="black", alpha=0.12*i+0.4)
+    ax_clump_model.plot(model_data.iloc[1::,4*i+2].astype(float),model_data.iloc[1::,4*i+3].astype(float), linewidth=2.0, linestyle="-", color="black", alpha=0.12*i+0.4)
+    ax_bulk_model.plot(model_data.iloc[1::,4*i].astype(float),model_data.iloc[1::,4*i+1].astype(float), linewidth=2.0, linestyle="-", color="black", alpha=0.12*i+0.4)
 
 ax_clump_model.set_ylim([-25,100])
 ax_clump_model.set_xlim([-5,50])
