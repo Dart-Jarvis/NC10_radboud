@@ -15,8 +15,8 @@ import scipy.special
 import time
 
 # Fractionation factors, in the order of 13C,D,13CD,DD
-a_anme_hs=[0.9951, 0.851, 0.834, 0.660] # High sulfate AOM from Liu et al., 2023
-a_nc10=[0.9778, 0.8019, 0.7843, 0.6296]
+a_anme=[0.9745, 0.7819, 0.7559, 0.5925] # Nitrate-dependent AOM from this study
+a_nc10=[0.9758, 0.7754, 0.7564, 0.5764] # Nitrite-dependent AOM
 
 #INPUTS
 nmolec=10000
@@ -49,22 +49,24 @@ ynames=[
 "H      ",
 "D      "]
 
-abundance=[9.8877187e-01,
-1.0695670e-02,
-5.2665729e-04,
-5.7133199e-06,
-1.0584170e-07,
-1.1378978e-09,
-9.3383922e-12,
-1.0101457e-13,
-3.1087380e-16,
-3.3627612e-18]
+abundance=[
+    9.8883E-01,
+    1.0652E-02,
+    5.1166E-04,
+    5.5289E-06,
+    1.0010E-07,
+    1.0695E-09,
+    8.5620E-12,
+    9.2231E-14,
+    2.7689E-16,
+    2.9827E-18]
 
-output=False
+output=True
 
-r_aeom=0.0 # Relative rate of AeOM
+r_aeom=1.0 # Relative rate of AeOM
+s="1"
 r_aom=1.0-r_aeom
-rev=5e-4 # Reversibility of AOM as defined by kr/kf
+rev=0.0 # Reversibility of AOM as defined by kr/kf
 os=False # Open system or not
 if os==True:
     t_upper=10000.0 # Change the t_upper for open system to make sure it reaches steady state
@@ -108,7 +110,7 @@ def dfdt(t,Y):
     print("Total methane oxidized:", Kt)
     print("Total CH4:", tCH4)
     print("Reversibility of AOM:", Kr/Kf)
-    phi=0.99
+    phi=1.00
     Kin=Kt/phi
     Kout=Kin-Kt
     if os==False:
@@ -291,24 +293,15 @@ Alpha_aeom[5]=a_nc10[0]
 Alpha_aeom[6]=a_nc10[2]
 Alpha_aeom[7]=a_nc10[2]
 
-# Alpha_aom[0]=1.0 # Set to 1 as default
-# Alpha_aom[1]=a_anme_hs[1]
-# Alpha_aom[2]=a_anme_hs[1]
-# Alpha_aom[3]=a_anme_hs[3]
-# Alpha_aom[4]=a_anme_hs[3]
-# Alpha_aom[5]=a_anme_hs[0]
-# Alpha_aom[6]=a_anme_hs[2]
-# Alpha_aom[7]=a_anme_hs[2]
-
 #Primary vs. secondary isotope effects, as in Liu et al., 2023
 Alpha_aom[0]=1.0
-Alpha_aom[1]=0.500
-Alpha_aom[2]=0.968
-Alpha_aom[3]=0.441
-Alpha_aom[4]=0.879
-Alpha_aom[5]=0.995
-Alpha_aom[6]=0.490
-Alpha_aom[7]=0.949
+Alpha_aom[1]=a_anme[1]
+Alpha_aom[2]=a_anme[1]
+Alpha_aom[3]=a_anme[3]
+Alpha_aom[4]=a_anme[3]
+Alpha_aom[5]=a_anme[0]
+Alpha_aom[6]=a_anme[2]
+Alpha_aom[7]=a_anme[2]
 
 # For the CH4 destruction, we use the sqrt of reduced masses for the bond being ruptured.
 # Rate constants are stored in array K. The reduced mass ratios are stored as fractionation
@@ -642,32 +635,32 @@ plt.savefig('D12CH2D2_vs_D13CH3D_smpl',bbox_inches='tight',dpi=1000)
 plt.show()
 
 if output==True:
-    a_file = open(s + '_F_CH4_output.txt', 'w')
+    a_file = open(s+'F_CH4_output.txt', 'w')
     for i in range(0,num):
         a_file.write("%.5f\n" % F_CH4[i])
     a_file.close()
 
-    a_file = open(s + '_CH4_moles_output.txt', 'w')
+    a_file = open(s+'CH4_moles_output.txt', 'w')
     for i in range(0,num):
         a_file.write("%.5f\n" % soln.y[0][i])
     a_file.close()
 
-    a_file = open(s + '_D12CH2D2_output.txt', 'w')
+    a_file = open(s+'D12CH2D2_output.txt', 'w')
     for i in range(0,num):
         a_file.write("%.5f\n" % D12CH2D2_t[i])
     a_file.close()
 
-    a_file = open(s + '_D13CH3D_output.txt', 'w')
+    a_file = open(s+'D13CH3D_output.txt', 'w')
     for i in range(0,num):
         a_file.write("%.5f\n" % D13CH3D_t[i])
     a_file.close()
 
-    a_file = open(s + '_dD_CH4_output.txt', 'w')
+    a_file = open(s+'dD_CH4_output.txt', 'w')
     for i in range(0,num):
         a_file.write("%.5f\n" % dD_CH4_t[i])
     a_file.close()
 
-    a_file = open(s + '_d13C_CH4_output.txt', 'w')
+    a_file = open(s+'d13C_CH4_output.txt', 'w')
     for i in range(0,num):
         a_file.write("%.5f\n" % d13C_CH4_t[i])
     a_file.close()
