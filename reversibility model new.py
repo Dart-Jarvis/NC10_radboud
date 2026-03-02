@@ -6,13 +6,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.ticker import MultipleLocator
 
-output=True
+output=True # True if you want to save the plots as pdf
 
 dDH2O = -50.0 # permil dD_H2O
 RVPDB = 0.0112372 # Standard carbon isotope ratio (VPDB)
 RVSMOW = 1.5576e-4 # Standard hydrogen isotope ratio (VSMOW)
 RH2O=RVSMOW*(dDH2O/1000+1) # D/H ratio in water
-FH2O=RH2O/(1+RH2O)
+FH2O=RH2O/(1+RH2O) # D/(D+H) ratio in water
 
 # Define KFF and EFFs from Gropp et al., 2021; Wegner et al., 2022; and this study
 # The forward KFF of the first step is defined by the experimental data (this might change after we get the ab initio result)
@@ -28,10 +28,10 @@ FH2O=RH2O/(1+RH2O)
 #-------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------
 # The experimental results from Scheller 2013, methane activation by mcr
-a1cff= 1/1.039 # Derived Carbon isotope effect on methane formation
-a1dffp= 1/2.44 # primary hydrogen isotope fractionation, KIE 2.44+-0.22, this value is adopted from Scheller et al., 2013
+a1cfb= 1/1.039 # Carbon isotope effect KIE=
+a1dffp= 1/2.44 # primary hydrogen isotope fractionation, KIE 2.44+-0.22
 a1dffs= 1/1.17 # secondary hydrogen isotope fractionation, KIE 1.17+-0.05
-a1dfnet=1/4*a1dffp+3/4*a1dffs
+a1dfnet=1/4*a1dffp+3/4*a1dffs # Net hydrogen isotope fractionation
 gammaCD=0.991
 gammaCDp=0.875
 a1cdffnet=gammaCD*a1cff*a1dfnet
@@ -53,14 +53,14 @@ a1ddfeqp=1/np.exp(-598.7/1000) # Primary
 a1ddfeqs=1/np.exp(107.9/1000) # Secondary
 
 # The hydrogen of the first step is assumed to be in equilibrium with HS-COB, equilibrium fractionation from Wegener et al.
-ahscobeq=0.4686 # aHSCOB-H2O=R_H2O/R_HSCOB HSCOB-->H2O
-ahscobf=1.0 # Best fit value in Wegener et al.
+ahscobeq=0.4686 # aHSCOB-H2O=R_H2O/R_HSCOB HSCOB-->H2O, equilibrium value
+ahscobf=1.0 # Forward fractionation HS-CoB --> H2O, best-fit value in Wegener et al.
 ahscobb=ahscobf*ahscobeq
 RHSCOB=RH2O/ahscobeq # D/H ratio in HS-CoB, assuming equilibrium with water
 rev_hscob=0.99
 
 # Calculate the fractionation factors of the back reactions for mcr
-a1cfb=a1cff*a1cfeq
+a1cff=a1cfb/a1cfeq
 a1dfbp=a1dffp*a1dfeqp # primary isotope effect backwards
 a1dfbs=a1dffs*a1dfeqs # secondary isotope effect backwards
 a1cdfbp=a1cdffp*a1cdfeqp
@@ -77,7 +77,7 @@ a2dff=1.00
 a2cdff=gamma2cd*a2cff*a2dff
 a2ddff=gamma2dd*a2dff**2
 
-# reversibility of cross-membrane transport
+# reversibility of cross-membrane transport, assuming highly reversibile methane exchange inside and outside the cells, without any isotope fractionation.
 rev_tr=0.99
 
 # Set up initial conditions
@@ -97,60 +97,62 @@ abundance=[
 # 5.5301E-06,
 # 1.0029E-07
 
-R=np.zeros(17) # plus D and H pools
+R=np.zeros(17) # abundance of each species involved in the reaction network
 dRdt=np.zeros(17)
+
+# Normalize the abundance, assuming the chemicals inside the cell (CH4,CH3-SCoM, HS-Cob) has a total abundance of 1 for each.
 for i in range(5):    
     R[i]=abundance[i]/sum(abundance)
-# Normalize the abundance
-
 # Abundance of all relevant CH3-SCoM isotopologues 12CH3, 13CH3, 12CH2D, 13CH2D, 12CHD2
 # Assume the same abundance as CH4
 R[5:10]=R[0:5]
-R[12:17]=R[0:5]*10 # Methane isotopologue abundances outside, assuming the reservoir is 10 times larger
 # D and H are in equilibrium with water
 R[10]=1.0/(1.0+RHSCOB) # H
 R[11]=(1-R[10]) # D
+R[12:17]=R[0:5]*10 # Methane isotopologue abundances outside, assuming the reservoir is 10 times larger
 R0=R
-
 # Construct ode
-def dfdt(t,R,J):
-    J1f,J1b=J     # unpack fluxes
-    Jf = (J1f*R[0] + J1f*R[1]*a1cff
-          + (1/4*J1f*R[2]*a1dffp + 3/4*J1f*R[2]*a1dffs)
-          + (1/4*J1f*R[3]*a1cdffp + 3/4*J1f*R[3]*a1cdffs)
-          + (1/2*J1f*R[4]*a1ddffp + 1/2*J1f*R[4]*a1ddffs))
+def dfdt(t,R,k):
+    k1f,k1b=k     # unpack fluxes
+    # Calculate total forward and backward fluxes for the first step.
+    Jf = (k1f*R[0] + k1f*R[1]*a1cff
+          + (1/4*k1f*R[2]*a1dffp + 3/4*k1f*R[2]*a1dffs)
+          + (1/4*k1f*R[3]*a1cdffp + 3/4*k1f*R[3]*a1cdffs)
+          + (1/2*k1f*R[4]*a1ddffp + 1/2*k1f*R[4]*a1ddffs))
 
-    Jb = (J1b*R[5]*R[10] + J1b*R[6]*a1cfb*R[10]
-          + (J1b*R[5]*R[11]*a1dfbp + J1b*R[7]*R[10]*a1dfbs)
-          + (J1b*R[6]*R[11]*a1cdfbp + J1b*R[8]*R[10]*a1cdfbs)
-          + (J1b*R[7]*R[11]*a1ddfbp + J1b*R[9]*R[10]*a1ddfbs))
+    Jb = (k1b*R[5]*R[10] + k1b*R[6]*a1cfb*R[10]
+          + (k1b*R[5]*R[11]*a1dfbp + k1b*R[7]*R[10]*a1dfbs)
+          + (k1b*R[6]*R[11]*a1cdfbp + k1b*R[8]*R[10]*a1cdfbs)
+          + (k1b*R[7]*R[11]*a1ddfbp + k1b*R[9]*R[10]*a1ddfbs))
+    # Apply steady state for HS-CoB species
     fhscobf=R[10]+R[11]*ahscobf
     fhscobb=(1-FH2O)+FH2O*ahscobb
     Jfhscob=(Jf-Jb)/(1-rev_hscob)
     Jbhscob=(Jf-Jb)*rev_hscob/(1-rev_hscob)
-    J2f=Jf-Jb # Steady state for CH3 species
+    # Apply steady state for CH3 species
+    J2f=Jf-Jb
     fch3f=R[5]+R[6]*a2cff+R[7]*a2dff+R[8]*a2cdff+R[9]*a2ddff # Partition of the fluxes
     Jin=(Jf-Jb)/(1-rev_tr)
     Jout=(Jf-Jb)*rev_tr/(1-rev_tr)
     fch4in=sum(R[12:17]) # Total methane abundance outside
     fch4out=sum(R[0:5]) # Total methane abundance inside
-    dRdt[0]=Jin*R[12]/fch4in-Jout*R[0]/fch4out-J1f*R[0]+J1b*R[5]*R[10] # 12CH4
-    dRdt[1]=Jin*R[13]/fch4in-Jout*R[1]/fch4out-J1f*R[1]*a1cff+J1b*R[6]*a1cfb*R[10] # 13CH4
-    dRdt[2]=Jin*R[14]/fch4in-Jout*R[2]/fch4out-1/4*J1f*R[2]*a1dffp-3/4*J1f*R[2]*a1dffs+J1b*R[5]*R[11]*a1dfbp+J1b*R[7]*R[10]*a1dfbs # 12CH3D
-    dRdt[3]=Jin*R[15]/fch4in-Jout*R[3]/fch4out-1/4*J1f*R[3]*a1cdffp-3/4*J1f*R[3]*a1cdffs+J1b*R[6]*R[11]*a1cdfbp+J1b*R[8]*R[10]*a1cdfbs # 13CH3D
-    dRdt[4]=Jin*R[16]/fch4in-Jout*R[4]/fch4out-1/2*J1f*R[4]*a1ddffp-1/2*J1f*R[4]*a1ddffs+J1b*R[7]*R[11]*a1ddfbp+J1b*R[9]*R[10]*a1ddfbs #12CH2D2
-    dRdt[5]=J1f*R[0]+1/4*J1f*R[2]*a1dffp-J1b*R[5]*R[11]*a1dfbp-J1b*R[5]*R[10]-J2f*R[5]/fch3f # 12CH3
-    dRdt[6]=J1f*R[1]*a1cff+1/4*J1f*R[3]*a1cdffp-J1b*R[6]*R[11]*a1cdfbp-J1b*R[6]*R[10]*a1cfb-J2f*R[6]*a2cff/fch3f # 13CH3
-    dRdt[7]=3/4*J1f*R[2]*a1dffs+1/2*J1f*R[4]*a1ddffp-J1b*R[7]*R[10]*a1dfbs-J1b*R[7]*R[11]*a1ddfbp-J2f*R[7]*a2dff/fch3f # 12CH2D
-    dRdt[8]=3/4*J1f*R[3]*a1cdffs-J1b*R[8]*R[10]*a1cdfbs-J2f*R[8]*a2cdff/fch3f # 13CH2D
-    dRdt[9]=1/2*J1f*R[4]*a1ddffs-J1b*R[9]*R[10]*a1ddfbs-J2f*R[9]*a2ddff/fch3f # 12CHD2
-    dRdt[10]=(J1f*R[0]+J1f*R[1]*a1cff
-    +3/4*J1f*R[2]*a1dffs+3/4*J1f*R[3]*a1cdffs+1/2*J1f*R[4]*a1ddffs
-    -J1b*R[5]*R[10]-J1b*R[6]*R[10]*a1cfb
-    -J1b*R[7]*R[10]*a1dfbs-J1b*R[8]*R[10]*a1cdfbs-J1b*R[9]*R[10]*a1ddfbs
+    dRdt[0]=Jin*R[12]/fch4in-Jout*R[0]/fch4out-k1f*R[0]+k1b*R[5]*R[10] # 12CH4
+    dRdt[1]=Jin*R[13]/fch4in-Jout*R[1]/fch4out-k1f*R[1]*a1cff+k1b*R[6]*a1cfb*R[10] # 13CH4
+    dRdt[2]=Jin*R[14]/fch4in-Jout*R[2]/fch4out-1/4*k1f*R[2]*a1dffp-3/4*k1f*R[2]*a1dffs+k1b*R[5]*R[11]*a1dfbp+k1b*R[7]*R[10]*a1dfbs # 12CH3D
+    dRdt[3]=Jin*R[15]/fch4in-Jout*R[3]/fch4out-1/4*k1f*R[3]*a1cdffp-3/4*k1f*R[3]*a1cdffs+k1b*R[6]*R[11]*a1cdfbp+k1b*R[8]*R[10]*a1cdfbs # 13CH3D
+    dRdt[4]=Jin*R[16]/fch4in-Jout*R[4]/fch4out-1/2*k1f*R[4]*a1ddffp-1/2*k1f*R[4]*a1ddffs+k1b*R[7]*R[11]*a1ddfbp+k1b*R[9]*R[10]*a1ddfbs #12CH2D2
+    dRdt[5]=k1f*R[0]+1/4*k1f*R[2]*a1dffp-k1b*R[5]*R[11]*a1dfbp-k1b*R[5]*R[10]-J2f*R[5]/fch3f # 12CH3
+    dRdt[6]=k1f*R[1]*a1cff+1/4*k1f*R[3]*a1cdffp-k1b*R[6]*R[11]*a1cdfbp-k1b*R[6]*R[10]*a1cfb-J2f*R[6]*a2cff/fch3f # 13CH3
+    dRdt[7]=3/4*k1f*R[2]*a1dffs+1/2*k1f*R[4]*a1ddffp-k1b*R[7]*R[10]*a1dfbs-k1b*R[7]*R[11]*a1ddfbp-J2f*R[7]*a2dff/fch3f # 12CH2D
+    dRdt[8]=3/4*k1f*R[3]*a1cdffs-k1b*R[8]*R[10]*a1cdfbs-J2f*R[8]*a2cdff/fch3f # 13CH2D
+    dRdt[9]=1/2*k1f*R[4]*a1ddffs-k1b*R[9]*R[10]*a1ddfbs-J2f*R[9]*a2ddff/fch3f # 12CHD2
+    dRdt[10]=(k1f*R[0]+k1f*R[1]*a1cff
+    +3/4*k1f*R[2]*a1dffs+3/4*k1f*R[3]*a1cdffs+1/2*k1f*R[4]*a1ddffs
+    -k1b*R[5]*R[10]-k1b*R[6]*R[10]*a1cfb
+    -k1b*R[7]*R[10]*a1dfbs-k1b*R[8]*R[10]*a1cdfbs-k1b*R[9]*R[10]*a1ddfbs
     -Jfhscob*R[10]/fhscobf+Jbhscob*(1-FH2O)/fhscobb) # HS-CoB sink to H2O
-    dRdt[11]=(1/4*J1f*R[2]*a1dffp+1/4*J1f*R[3]*a1cdffp+1/2*J1f*R[4]*a1ddffp
-    -J1b*R[5]*R[11]*a1dfbp-J1b*R[6]*R[11]*a1cdfbp-J1b*R[7]*R[11]*a1ddfbp
+    dRdt[11]=(1/4*k1f*R[2]*a1dffp+1/4*k1f*R[3]*a1cdffp+1/2*k1f*R[4]*a1ddffp
+    -k1b*R[5]*R[11]*a1dfbp-k1b*R[6]*R[11]*a1cdfbp-k1b*R[7]*R[11]*a1ddfbp
     -Jfhscob*R[11]*ahscobf/fhscobf+Jbhscob*FH2O*ahscobb/fhscobb)
     dRdt[12]=-Jin*R[12]/fch4in+Jout*R[0]/fch4out
     dRdt[13]=-Jin*R[13]/fch4in+Jout*R[1]/fch4out
@@ -159,19 +161,19 @@ def dfdt(t,R,J):
     dRdt[16]=-Jin*R[16]/fch4in+Jout*R[4]/fch4out
     return dRdt
 
-# Define a separate function to calculate the evolution of 
-def jb_jf_ratio(t, R, J):
-    J1f, J1b = J
+# Define a separate function to calculate the evolution of reversibility
+def jb_jf_ratio(t, R, k):
+    k1f, k1b = k
 
-    Jf = (J1f*R[0] + J1f*R[1]*a1cff
-          + (1/4*J1f*R[2]*a1dffp + 3/4*J1f*R[2]*a1dffs)
-          + (1/4*J1f*R[3]*a1cdffp + 3/4*J1f*R[3]*a1cdffs)
-          + (1/2*J1f*R[4]*a1ddffp + 1/2*J1f*R[4]*a1ddffs))
+    Jf = (k1f*R[0] + k1f*R[1]*a1cff
+          + (1/4*k1f*R[2]*a1dffp + 3/4*k1f*R[2]*a1dffs)
+          + (1/4*k1f*R[3]*a1cdffp + 3/4*k1f*R[3]*a1cdffs)
+          + (1/2*k1f*R[4]*a1ddffp + 1/2*k1f*R[4]*a1ddffs))
 
-    Jb = (J1b*R[5]*R[10] + J1b*R[6]*a1cfb*R[10]
-          + (J1b*R[5]*R[11]*a1dfbp + J1b*R[7]*R[10]*a1dfbs)
-          + (J1b*R[6]*R[11]*a1cdfbp + J1b*R[8]*R[10]*a1cdfbs)
-          + (J1b*R[7]*R[11]*a1ddfbp + J1b*R[9]*R[10]*a1ddfbs))
+    Jb = (k1b*R[5]*R[10] + k1b*R[6]*a1cfb*R[10]
+          + (k1b*R[5]*R[11]*a1dfbp + k1b*R[7]*R[10]*a1dfbs)
+          + (k1b*R[6]*R[11]*a1cdfbp + k1b*R[8]*R[10]*a1cdfbs)
+          + (k1b*R[7]*R[11]*a1ddfbp + k1b*R[9]*R[10]*a1ddfbs))
 
     return Jb / Jf
 
@@ -195,19 +197,19 @@ def process(sol):
 
 # Define a function to model the change of isotope fractionation with reversibility
 def model_rev(rev, tmax, num):
-    J1f_input=1.0
-    J1b_input=J1f_input*rev
-    J=[J1f_input,J1b_input]
+    k1f_input=1.0
+    k1b_input=k1f_input*rev
+    k=[k1f_input,k1b_input]
     tint=np.linspace(t_lower,tmax,num) 
-    solution=solve_ivp(dfdt,(t_lower,tmax),R0,args=(J,),t_eval=tint,atol=1.0e-12,rtol=1.0e-9)
+    solution=solve_ivp(dfdt,(t_lower,tmax),R0,args=(k,),t_eval=tint,atol=1.0e-12,rtol=1.0e-9)
     tot_sol,fCH4_sol,d13C_sol,dD_sol,D13CH3D_sol,D12CH2D2_sol=process(solution)
-    rev_sol = np.array([jb_jf_ratio(t, R, J) for t, R in zip(solution.t, solution.y.T)])
+    rev_sol = np.array([jb_jf_ratio(t, R, k) for t, R in zip(solution.t, solution.y.T)])
     return tot_sol,fCH4_sol,rev_sol,d13C_sol,dD_sol,D13CH3D_sol,D12CH2D2_sol
 
-rev_list=[0.0,0.2,0.3,0.45,0.86]
+rev_list=[0.0,0.2,0.3,0.45,0.86] # The list of reversibility to be plotted, each value ranges from 0 to 1
 t_lower=0.000 # minimum time for time interval
-time_list=[8.5,11.0,13.0,16.0,68.0]
-num=100000
+time_list=[8.5,11.0,13.0,16.0,68.0] # Maximum time for time interval, relevant to the final fraction of methane left
+num=100000 # Number of tim steps
 tot=np.zeros([len(rev_list),num])
 fCH4=np.zeros([len(rev_list),num])
 rev=np.zeros([len(rev_list),num])
@@ -310,17 +312,34 @@ def plotf(x,n,ne,ax):
                markersize=14,fmt="o",markeredgecolor="black",markeredgewidth=2.5)
     ax.errorbar(AOM_ono["f"],AOM_ono[n],xerr=AOM_ono["fse"],yerr=AOM_ono[ne],markerfacecolor="white",
                markersize=14,fmt="^",markeredgecolor="black",markeredgewidth=2.5)
+    ax.invert_xaxis()
 
 plotf(d13C,"d13C","cse",ax_f1)
 set_axis(ax_f1,r"$f$",'$\delta^{13}$C (\u2030)')
+ax_f1.set_xlim([1.04,-0.04])
+ax_f1.xaxis.set_minor_locator(MultipleLocator(0.1))
+ax_f1.yaxis.set_minor_locator(MultipleLocator(4))
 plotf(dD,"dD","dse",ax_f2)
 set_axis(ax_f2,r"$f$",'$\delta$D (\u2030)')
 ax_f2.set_ylim([-220,350])
+ax_f2.set_xlim([1.04,-0.04])
+ax_f2.xaxis.set_minor_locator(MultipleLocator(0.1))
+ax_f2.yaxis.set_minor_locator(MultipleLocator(40))
 plotf(D13CH3D,"D13CH3D","cdse",ax_f3)
 set_axis(ax_f3,r"$f$",'$\Delta^{13}$CH$_3$D (\u2030)')
+ax_f3.set_xlim([1.04,-0.04])
+ax_f3.xaxis.set_minor_locator(MultipleLocator(0.1))
+ax_f3.yaxis.set_minor_locator(MultipleLocator(2))
 plotf(D12CH2D2,"D12CH2D2","ddse",ax_f4)
 set_axis(ax_f4,r"$f$",'$\Delta^{12}$CH$_2$D$_2$ (\u2030)')
+ax_f4.set_xlim([1.04,-0.04])
+ax_f4.xaxis.set_minor_locator(MultipleLocator(0.1))
+ax_f4.yaxis.set_minor_locator(MultipleLocator(10))
 
 if output==True:
     fig_bulk.savefig("bulk_model.pdf",bbox_inches="tight")
     fig_clump.savefig("clump_model.pdf",bbox_inches="tight")
+    fig_f1.savefig("model_f1.pdf",bbox_inches="tight")
+    fig_f2.savefig("model_f2.pdf",bbox_inches="tight")
+    fig_f3.savefig("model_f3.pdf",bbox_inches="tight")
+    fig_f4.savefig("model_f4.pdf",bbox_inches="tight")

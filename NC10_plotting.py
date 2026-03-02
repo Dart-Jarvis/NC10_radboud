@@ -40,6 +40,7 @@ AOM_P=data[data['label']=='AOM_P'] # Previous data from Liu et al., 2023, Kineti
 AOM_P_LS=data[data['label']=='AOM_P_LS'] # AOM data from Liu et al., 2023, equilibrium S-AOM
 AOM_ono=data[data['label']=='AOM_ono'] # AOM data from Ono et al., 2021 (high sulfate series)
 AeOM_m=AeOM_P[AeOM_P['f']>=0.4]
+AOM_wegener=data[data['label']=='AOM_Wegener']
 
 # Create a mask to determine which series of data to lot
 mask={
@@ -92,6 +93,8 @@ def quick_plot(ax,x,y,xerr,yerr,msk):
                 markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
         ax.errorbar(AOM_ono[x],AOM_ono[y],xerr=AOM_ono[xerr],yerr=AOM_ono[yerr], markersize=14, fmt='s', 
                 markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+        ax.errorbar(AOM_wegener[x],AOM_wegener[y],xerr=AOM_wegener[xerr],yerr=AOM_wegener[yerr], markersize=14, fmt='s', 
+                markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
 
 def set_axis(ax,xlabel,ylabel):
     ax.set_ylabel(ylabel, fontdict = font_labels)
@@ -111,8 +114,8 @@ ax1.yaxis.set_minor_locator(MultipleLocator(2))
 ax1.xaxis.set_minor_locator(MultipleLocator(1))
 
 set_axis(ax2,'$\delta^{13}$C (\u2030)','$\delta$D (\u2030)')
-ax2.yaxis.set_minor_locator(MultipleLocator(10))
-ax2.xaxis.set_minor_locator(MultipleLocator(1))
+ax2.yaxis.set_minor_locator(MultipleLocator(20))
+ax2.xaxis.set_minor_locator(MultipleLocator(4))
 
 # The compilation of isotope fractionation factors
 alphas={
@@ -333,17 +336,29 @@ mask_f2={
 quick_plot_f(ax5,"d13C","cse",mask_f2)
 plot_mixing(ax5,"d13C")
 set_axis(ax5,r"$f$", r"$\delta^{13}$C" + " (\u2030)")
-ax5.legend(fontsize=16)
+ax5.set_xlim([1.04,0.32])
+ax5.xaxis.set_minor_locator(MultipleLocator(0.1))
+ax5.yaxis.set_minor_locator(MultipleLocator(2))
+ax5.legend(fontsize=20)
 quick_plot_f(ax6,"dD","dse",mask_f2)
 plot_mixing(ax6,"dD")
 set_axis(ax6,r"$f$", r"$\delta$D" + " (\u2030)")
+ax6.set_xlim([1.04,0.32])
+ax6.xaxis.set_minor_locator(MultipleLocator(0.1))
+ax6.yaxis.set_minor_locator(MultipleLocator(10))
 quick_plot_f(ax7,"D13CH3D","cdse",mask_f2)
 plot_mixing(ax7,"D13CH3D")
 ax7.set_ylim([-2.3,4.2])
+ax7.set_xlim([1.04,0.32])
+ax7.xaxis.set_minor_locator(MultipleLocator(0.1))
+ax7.yaxis.set_minor_locator(MultipleLocator(0.4))
 set_axis(ax7,r"$f$", r"$\Delta^{13}$CH$_3$D" + " (\u2030)")
 quick_plot_f(ax8,"D12CH2D2","ddse",mask_f2)
 plot_mixing(ax8,"D12CH2D2")
 set_axis(ax8,r"$f$", r"$\Delta^{12}$CH$_2$D$_2$" + " (\u2030)")
+ax8.set_xlim([1.04,0.32])
+ax8.xaxis.set_minor_locator(MultipleLocator(0.1))
+ax8.yaxis.set_minor_locator(MultipleLocator(2))
 
 # # Plot epsilons
 # def plot_isotope_eps(ax,x,y,xerr,yerr,msk):
@@ -472,35 +487,72 @@ plt.tight_layout()
 plt.savefig("rate_zoom.pdf")
 plt.show()
 
-# Model curves
-# model_data=pd.read_csv("model_output.csv")
-# fig_bulk_model,ax_bulk_model=plt.subplots(figsize=(8,8))
-# fig_clump_model,ax_clump_model=plt.subplots(figsize=(8,8))
+# Methane consumption curves
+consumption=pd.read_csv("methane oxidation curve.csv",header=None)
+NC10_con={
+    "t": consumption.iloc[7,1:],
+    "exp": consumption.iloc[8,1:],
+    "exp_se": consumption.iloc[9,1:],
+    "t_ctrl": consumption.iloc[10,1:],
+    "ctrl": consumption.iloc[11,1:],
+    "ctrl_se": consumption.iloc[12,1:]
+}
 
-# ax_clump_model.plot(equib['D13CH3D'],equib['D12CH2D2'],'-k', label = 'Equilibrium', linewidth = 2.5, markersize = 15)
-# for i in range(len(equib)):
-#     if equib['p'].iloc[i]==1:
-#         ax_clump_model.scatter(equib['D13CH3D'].iloc[i], equib['D12CH2D2'].iloc[i],color='black',s=60)
+ANME_con={
+    "t": consumption.iloc[14,1:],
+    "exp": consumption.iloc[15,1:],
+    "exp_se": consumption.iloc[16,1:],
+    "t_ctrl": consumption.iloc[17,1:],
+    "ctrl": consumption.iloc[18,1:],
+    "ctrl_se": consumption.iloc[19,1:]
+}
 
-# ax_clump_model.errorbar(ANME2d["D13CH3D"],ANME2d["D12CH2D2"],xerr=ANME2d["cdse"],yerr=ANME2d["ddse"], markersize=14,label=r'N-AOM', fmt='s',
-#         markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
-# ax_clump_model.errorbar(AOM_P["D13CH3D"],AOM_P["D12CH2D2"],xerr=AOM_P["cdse"],yerr=AOM_P["ddse"], markersize=14,label=r'S-AOM', fmt='s', 
-#         markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
-# ax_bulk_model.errorbar(ANME2d["d13C"],ANME2d["dD"],xerr=ANME2d["cse"],yerr=ANME2d["dse"], markersize=14,label=r'N-AOM', fmt='s',
-#         markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
-# ax_bulk_model.errorbar(AOM_P["d13C"],AOM_P["dD"],xerr=AOM_P["cse"],yerr=AOM_P["dse"], markersize=14,label=r'S-AOM', fmt='s', 
-#         markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
-# for i in range(5):
-#     ax_clump_model.plot(model_data.iloc[1::,4*i+2].astype(float),model_data.iloc[1::,4*i+3].astype(float), linewidth=2.0, linestyle="-", color="black", alpha=0.12*i+0.4)
-#     ax_bulk_model.plot(model_data.iloc[1::,4*i].astype(float),model_data.iloc[1::,4*i+1].astype(float), linewidth=2.0, linestyle="-", color="black", alpha=0.12*i+0.4)
+NC10_ANME_con={
+    "t": consumption.iloc[0,1:],
+    "exp": consumption.iloc[1,1:],
+    "exp_se": consumption.iloc[2,1:],
+    "t_ctrl": consumption.iloc[3,1:],
+    "ctrl": consumption.iloc[4,1:],
+    "ctrl_se": consumption.iloc[5,1:]
+}
 
-# ax_clump_model.set_ylim([-25,100])
-# ax_clump_model.set_xlim([-5,50])
-# set_axis(ax_clump_model,'$\Delta^{13}$CH$_3$D (\u2030)','$\Delta^{12}$CH$_2$D$_2$ (\u2030)')
-# ax_clump_model.legend(fontsize=16)
-# set_axis(ax_bulk_model,'$\delta^{13}$C (\u2030)','$\delta$D (\u2030)')
+Oct_con={
+    "t": consumption.iloc[21,1:],
+    "exp": consumption.iloc[22,1:],
+    "exp_se": consumption.iloc[23,1:],
+    "t_ctrl": consumption.iloc[24,1:],
+    "ctrl": consumption.iloc[25,1:],
+    "ctrl_se": consumption.iloc[26,1:]
+}
 
+BES_con={
+    "t": consumption.iloc[28,1:],
+    "exp": consumption.iloc[29,1:],
+    "exp_se": consumption.iloc[30,1:],
+    "t_ctrl": consumption.iloc[31,1:],
+    "ctrl": consumption.iloc[32,1:],
+    "ctrl_se": consumption.iloc[33,1:]
+}
 
+def plot_con(ax,series,name):
+    ax.errorbar(series["t"],series["exp"],xerr=None,yerr=series["exp_se"],fmt="o-",color="red", markersize=18, linewidth=2.0,
+                markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='red', elinewidth=2.5, label=name+" experiment")
+    ax.errorbar(series["t_ctrl"],series["ctrl"],xerr=None,yerr=series["ctrl_se"],fmt="o-",color="black", markersize=18, linewidth=2.0,
+                markerfacecolor='black', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, label=name+" control", zorder=-1)
+    ax.legend(fontsize=26)
+    set_axis(ax,"Elapse time (days)", r"Headspace methane ($\mu$mol)")
+
+con_nc10,ax_nc10=plt.subplots(figsize=(12,12))
+plot_con(ax_nc10,NC10_con,"NC10")
+con_anme,ax_anme=plt.subplots(figsize=(12,12))
+plot_con(ax_anme,ANME_con,"ANME")
+con_nc10_anme,ax_nc10_anme=plt.subplots(figsize=(12,12))
+plot_con(ax_nc10_anme,NC10_ANME_con,"NC10+ANME")
+con_oct,ax_oct=plt.subplots(figsize=(12,12))
+plot_con(ax_oct,Oct_con,"NC10+ANME+Oct")
+ax_oct.set_xlim([-1,16])
+con_bes,ax_bes=plt.subplots(figsize=(12,12))
+plot_con(ax_bes,BES_con,"NC10+ANME+BES")
 
 if mask["save_fig"]==1:
     fig1.savefig('clumped_sum.pdf', bbox_inches='tight')
@@ -517,3 +569,8 @@ if mask["save_fig"]==1:
     fig6.savefig("dD_f.pdf", bbox_inches='tight')
     fig7.savefig("D13CD_f.pdf", bbox_inches='tight')
     fig8.savefig("D2_f.pdf", bbox_inches='tight')
+    con_nc10.savefig("con_nc10.pdf", bbox_inches='tight')
+    con_anme.savefig("con_anme.pdf", bbox_inches='tight')
+    con_nc10_anme.savefig("con_nc10_anme.pdf", bbox_inches='tight')
+    con_oct.savefig("con_oct.pdf", bbox_inches='tight')
+    con_bes.savefig("con_bes.pdf", bbox_inches='tight')
