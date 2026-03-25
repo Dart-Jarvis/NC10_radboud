@@ -6,43 +6,18 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.ticker import MultipleLocator
 
-output=True # True if you want to save the plots as pdf
-
+output=False # True if you want to save the plots as pdf
+ff="experiment" # Select the KIEs in the model: 
+# "experiment": data from Scheller et al., 2013;
+# "Ab initio": ab initio calculation in this study
 dDH2O = -50.0 # permil dD_H2O
 RVPDB = 0.0112372 # Standard carbon isotope ratio (VPDB)
 RVSMOW = 1.5576e-4 # Standard hydrogen isotope ratio (VSMOW)
 RH2O=RVSMOW*(dDH2O/1000+1) # D/H ratio in water
 FH2O=RH2O/(1+RH2O) # D/(D+H) ratio in water
 
-# Define KFF and EFFs from Gropp et al., 2021; Wegner et al., 2022; and this study
-# The forward KFF of the first step is defined by the experimental data (this might change after we get the ab initio result)
-# a1cff= 0.9745 # Carbon isotope fractionation, use the net isotope fractionation of carbon in ANME experiment， 0.9745
-# a1dffp= 0.4098 # primary hydrogen isotope fractionation, net is 0.7819, this value is adopted from Scheller et al., 2013
-# a1dffs= (0.7819-a1dffp/4)*(4/3) # secondary hydrogen isotope fractionation
-# gammaCD=0.72 # Needs to be much smaller than 1 in order to fit the data
-# a1cdffp=a1dffp*a1cff*gammaCD # primary clumped isotopologue 13CD fractionation factor, net is 0.7559
-# a1cdffs= (0.7559-a1cdffp/4)*(4/3) # secondary clumped isotopologue 13CD fractionation factor
-# gammaDD=0.62 # Needs to be much smaller than 1 in order to fit the data
-# a1ddffp=a1dffp*a1dffs*gammaDD # primary DD fractionation factor, net is 0.5925
-# a1ddffs= (0.5925-a1ddffp/2)*2 # secondary DD fractionation factor
 #-------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------
-# The experimental results from Scheller 2013, methane activation by mcr
-a1cfb= 1/1.039 # Carbon isotope effect KIE=
-a1dffp= 1/2.44 # primary hydrogen isotope fractionation, KIE 2.44+-0.22
-a1dffs= 1/1.17 # secondary hydrogen isotope fractionation, KIE 1.17+-0.05
-a1dfnet=1/4*a1dffp+3/4*a1dffs # Net hydrogen isotope fractionation
-gammaCD=0.991
-gammaCDp=0.875
-a1cdffnet=gammaCD*a1cff*a1dfnet
-a1cdffp=a1dffp*a1cff*gammaCDp # primary clumped isotopologue 13CD fractionation factor, net is 0.7559
-a1cdffs= (a1cdffnet-a1cdffp/4)*(4/3) # secondary clumped isotopologue 13CD fractionation factor
-gammaDD=0.968
-p=2.45 # alpha_s/alpha_p=2.09 +- 0.15, from Scheller et al.
-a1ddffnet=gammaDD*a1dfnet**2 # net DD fractionation factor
-a1ddffp=a1ddffnet/(p/2+1/2)
-a1ddffs=p*a1ddffp 
-
 # Equlibrium isotope effect of the first step, from Gropp et al., 2021 (25 degree C)
 a1cfeq=1/np.exp(2.1/1000)
 a1dfeqp=1/np.exp(-635.8/1000) # Primary equilibrium fractionation
@@ -51,22 +26,56 @@ a1cdfeqp=1/np.exp(-639.5/1000) # Primary
 a1cdfeqs=1/np.exp(57.1/1000) # Secondary
 a1ddfeqp=1/np.exp(-598.7/1000) # Primary
 a1ddfeqs=1/np.exp(107.9/1000) # Secondary
+# The experimental results from Scheller 2013, methane activation by mcr
+if ff=="experiment":    
+    a1cfb= 1/1.039 # Carbon isotope effect KIE=1.039, methane formation dirction
+    a1cff=a1cfb/a1cfeq
+    a1dffp= 1/2.44 # primary hydrogen isotope fractionation, KIE 2.44+-0.22
+    a1dffs= 1/1.17 # secondary hydrogen isotope fractionation, KIE 1.17+-0.05
+    a1dfnet=1/4*a1dffp+3/4*a1dffs # Net hydrogen isotope fractionation
+    gammaCD=0.991
+    gammaCDp=0.875
+    a1cdffnet=gammaCD*a1cff*a1dfnet
+    a1cdffp=a1dffp*a1cff*gammaCDp # primary clumped isotopologue 13CD fractionation factor, net is 0.7559
+    a1cdffs= (a1cdffnet-a1cdffp/4)*(4/3) # secondary clumped isotopologue 13CD fractionation factor
+    gammaDD=0.968
+    p=2.45 # alpha_s/alpha_p=2.09 +- 0.15, from Scheller et al.
+    a1ddffnet=gammaDD*a1dfnet**2 # net DD fractionation factor
+    a1ddffp=a1ddffnet/(p/2+1/2)
+    a1ddffs=p*a1ddffp 
 
-# The hydrogen of the first step is assumed to be in equilibrium with HS-COB, equilibrium fractionation from Wegener et al.
-ahscobeq=0.4686 # aHSCOB-H2O=R_H2O/R_HSCOB HSCOB-->H2O, equilibrium value
-ahscobf=1.0 # Forward fractionation HS-CoB --> H2O, best-fit value in Wegener et al.
-ahscobb=ahscobf*ahscobeq
-RHSCOB=RH2O/ahscobeq # D/H ratio in HS-CoB, assuming equilibrium with water
-rev_hscob=0.99
+    # Calculate the fractionation factors of the back reactions for mcr
+    a1dfbp=a1dffp*a1dfeqp # primary isotope effect backwards
+    a1dfbs=a1dffs*a1dfeqs # secondary isotope effect backwards
+    a1cdfbp=a1cdffp*a1cdfeqp
+    a1cdfbs=a1cdffs*a1cdfeqs
+    a1ddfbp=a1ddffp*a1ddfeqp
+    a1ddfbs=a1ddffs*a1ddfeqs
+    print("Net fractionation factors:")
+    print(a1cff, "\n", a1dfnet, "\n", a1cdffnet, "\n", a1ddffnet)
 
-# Calculate the fractionation factors of the back reactions for mcr
-a1cff=a1cfb/a1cfeq
-a1dfbp=a1dffp*a1dfeqp # primary isotope effect backwards
-a1dfbs=a1dffs*a1dfeqs # secondary isotope effect backwards
-a1cdfbp=a1cdffp*a1cdfeqp
-a1cdfbs=a1cdffs*a1cdfeqs
-a1ddfbp=a1ddffp*a1ddfeqp
-a1ddfbs=a1ddffs*a1ddfeqs
+if ff=="ab initio": # Ab initio calculation gets the fractionation in the backward dirction
+    a1cfb=0.93277
+    a1dfbp=0.53129
+    a1dfbs=0.84452
+    a1cdfbp=0.49277
+    a1cdfbs=0.78818
+    a1ddfbp=0.44034
+    a1ddfbs=0.50105
+    # Calculate the fractionation factors of the forward reactions for mcr
+    a1cff=a1cfb/a1cfeq
+    a1dffp=a1dfbp/a1dfeqp # primary isotope effect backwards
+    a1dffs=a1dfbs/a1dfeqs # secondary isotope effect backwards
+    a1cdffp=a1cdfbp/a1cdfeqp
+    a1cdffs=a1cdfbs/a1cdfeqs
+    a1ddffp=a1ddfbp/a1ddfeqp
+    a1ddffs=a1ddfbs/a1ddfeqs
+    # Calculate net ff
+    a1dfnet=a1dffp/4+3/4*a1dffs
+    a1cdffnet=a1cdffp/4+3/4*a1cdffs
+    a1ddffnet=a1ddffp/2+a1ddffs/2
+    print("Net fractionation factors:")
+    print(a1cff, "\n", a1dfnet, "\n", a1cdffnet, "\n", a1ddffnet)
 
 # The kinetic isotope effect of the second step (CH3-SCoM --> CHO-MFR), from the best-fit values in Wegener et al., 2021, Table S6
 # Gamma values are set at 1
@@ -76,6 +85,13 @@ a2cff=0.979
 a2dff=1.00
 a2cdff=gamma2cd*a2cff*a2dff
 a2ddff=gamma2dd*a2dff**2
+
+# The hydrogen of the first step is assumed to be in equilibrium with HS-COB, equilibrium fractionation from Wegener et al.
+ahscobeq=0.4686 # aHSCOB-H2O=R_H2O/R_HSCOB HSCOB-->H2O, equilibrium value
+ahscobf=1.0 # Forward fractionation HS-CoB --> H2O, best-fit value in Wegener et al.
+ahscobb=ahscobf*ahscobeq
+RHSCOB=RH2O/ahscobeq # D/H ratio in HS-CoB, assuming equilibrium with water
+rev_hscob=0.99
 
 # reversibility of cross-membrane transport, assuming highly reversibile methane exchange inside and outside the cells, without any isotope fractionation.
 rev_tr=0.99
