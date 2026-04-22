@@ -241,11 +241,15 @@ for i in range (len(rev_list)):
 data = pd.read_csv('isotope_data.csv')
 equib = pd.read_csv('equib.csv')
 ANME2d=data[data['label']=='3'] # ANME-2d
+NC10=data[data['label']=='1'] # NC10
 # Previous AOM data
 AOM_P=data[data['label']=='AOM_P']
 AOM_P_LS=data[data['label']=='AOM_P_LS']
 AOM_ono=data[data['label']=='AOM_ono']
 AOM_wegener=data[data['label']=='AOM_Wegener']
+# Previous AeOM
+AeOM_P=data[data['label']=='P'] # Previous data from Li et al., 2024
+AeOM_P1=data[data['label']=='P1'] # Previous data from Krause et al., 2022
 
 # Plot
 # Font dictionary
@@ -276,6 +280,8 @@ ax_bulk.plot(d13C[1,:],dD[1,:], linewidth=2.5, linestyle=":", color="purple", al
 ax_bulk.plot(d13C[2,:],dD[2,:], linewidth=2.5, linestyle="--", color="blue", alpha=1.0,label="Model, R="+str(rev_list[2]),zorder=-2)
 ax_bulk.plot(d13C[3,:],dD[3,:], linewidth=2.5, linestyle=(5,(10,3)), color="orange", alpha=1.0, label="Model, R="+str(rev_list[3]), zorder=-2)
 ax_bulk.plot(d13C[4,:],dD[4,:], linewidth=2.5, color="red", alpha=1.0, label="Model, R="+str(rev_list[4]), zorder=-2)
+
+
 ax_bulk.errorbar(ANME2d["d13C"],ANME2d["dD"],xerr=ANME2d["cse"],yerr=ANME2d["dse"], markersize=18,label=r'N-AOM (this study)', fmt='o', 
         markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
 ax_bulk.errorbar(AOM_P["d13C"],AOM_P["dD"],xerr=AOM_P["cse"],yerr=AOM_P["dse"], markersize=14,label=r'S-AOM (Liu et al.)', fmt='s', 
@@ -284,10 +290,14 @@ ax_bulk.errorbar(AOM_wegener["d13C"],AOM_wegener["dD"],xerr=AOM_wegener["cse"],y
         fmt='o', markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
 ax_bulk.errorbar(AOM_ono["d13C"],AOM_ono["dD"],xerr=AOM_ono["cse"],yerr=AOM_ono["dse"], markersize=14, label=r"S-AOM (Ono et al.)",
                  fmt='^', markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+ax_bulk.errorbar(NC10["d13C"], NC10["dD"],xerr=NC10["cse"],yerr=NC10["dse"], markersize=18,label=r'NC10', fmt='o', 
+        markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+ax_bulk.errorbar(AeOM_P["d13C"], AeOM_P["dD"],xerr=AeOM_P["cse"],yerr=AeOM_P["dse"], markersize=18,label=r'AeOM', fmt='o', 
+        markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
 set_axis(ax_bulk,'$\delta^{13}$C (\u2030)','$\delta$D (\u2030)')
 ax_bulk.xaxis.set_minor_locator(MultipleLocator(2))
 ax_bulk.yaxis.set_minor_locator(MultipleLocator(20))
-ax_bulk.legend(fontsize=20)
+ax_bulk.legend(fontsize=18)
 
 fig_clump,ax_clump=plt.subplots(figsize=(12,12))
 ax_clump.plot(equib['D13CH3D'],equib['D12CH2D2'],'-k', label = 'Equilibrium', linewidth = 2.5, markersize = 15)
@@ -296,19 +306,23 @@ for i in range(len(equib)):
         ax_clump.scatter(equib['D13CH3D'].iloc[i], equib['D12CH2D2'].iloc[i],color='black',s=60)
 
 
-ax_clump.plot(D13CH3D[0,:],D12CH2D2[0,:], linewidth=2.5, color="black",linestyle="-.",alpha=1.0,label="Model, R="+str(rev_list[0]),zorder=-2)
-ax_clump.plot(D13CH3D[1,:],D12CH2D2[1,:], linewidth=2.5, linestyle=":", color="purple", alpha=1.0,label="Model, R="+str(rev_list[1]),zorder=-2)
-ax_clump.plot(D13CH3D[2,:],D12CH2D2[2,:], linewidth=2.5, linestyle="--", color="blue", alpha=1.0,label="Model, R="+str(rev_list[2]),zorder=-2)
-ax_clump.plot(D13CH3D[3,:],D12CH2D2[3,:], linewidth=2.5, linestyle=(5,(10,3)),color="orange", alpha=1.0, label="Model, R="+str(rev_list[3]),zorder=-2)
-ax_clump.plot(D13CH3D[4,:],D12CH2D2[4,:], linewidth=2.5, color="red", alpha=1.0, label="Model, R="+str(rev_list[4]),zorder=-2)
+ax_clump.plot(D13CH3D[0,:],D12CH2D2[0,:], linewidth=2.5, color="black",linestyle="-.",alpha=1.0,zorder=-2)
+ax_clump.plot(D13CH3D[1,:],D12CH2D2[1,:], linewidth=2.5, linestyle=":", color="purple", alpha=1.0,zorder=-2)
+ax_clump.plot(D13CH3D[2,:],D12CH2D2[2,:], linewidth=2.5, linestyle="--", color="blue", alpha=1.0,zorder=-2)
+ax_clump.plot(D13CH3D[3,:],D12CH2D2[3,:], linewidth=2.5, linestyle=(5,(10,3)),color="orange", alpha=1.0,zorder=-2)
+ax_clump.plot(D13CH3D[4,:],D12CH2D2[4,:], linewidth=2.5, color="red", alpha=1.0,zorder=-2)
 ax_clump.errorbar(ANME2d["D13CH3D"],ANME2d["D12CH2D2"],xerr=ANME2d["cdse"],yerr=ANME2d["ddse"], markersize=18,label=r'Nitrate-dependent AOM (this study)', fmt='o', 
         markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-ax_clump.errorbar(AOM_P["D13CH3D"],AOM_P["D12CH2D2"],xerr=AOM_P["cdse"],yerr=AOM_P["ddse"], markersize=14,label=r'Sulfate-dependent AOM (Liu et al.)', fmt='s', 
+ax_clump.errorbar(AOM_P["D13CH3D"],AOM_P["D12CH2D2"],xerr=AOM_P["cdse"],yerr=AOM_P["ddse"], markersize=14,label=r'Sulfate-dependent AOM', fmt='s', 
         markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+ax_clump.errorbar(NC10["D13CH3D"], NC10["D12CH2D2"],xerr=NC10["cdse"],yerr=NC10["ddse"], markersize=18,label=r'NC10 (this study)', fmt='o', 
+        markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+ax_clump.errorbar(AeOM_P["D13CH3D"], AeOM_P["D12CH2D2"],xerr=AeOM_P["cdse"],yerr=AeOM_P["ddse"], markersize=18,label=r'AeOM', fmt='o', 
+        markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-2)
 set_axis(ax_clump,'$\Delta^{13}$CH$_3$D (\u2030)','$\Delta^{12}$CH$_2$D$_2$ (\u2030)')
 ax_clump.xaxis.set_minor_locator(MultipleLocator(2))
 ax_clump.yaxis.set_minor_locator(MultipleLocator(4))
-
+ax_clump.legend(fontsize=18)
 
 fig_f1,ax_f1=plt.subplots(figsize=(12,6))
 fig_f2,ax_f2=plt.subplots(figsize=(12,6))

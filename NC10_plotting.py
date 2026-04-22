@@ -44,13 +44,13 @@ AOM_wegener=data[data['label']=='AOM_Wegener']
 
 # Create a mask to determine which series of data to lot
 mask={
-    "save_fig":1,
+    "save_fig":0,
     "T0": 1,
     "NC10":1,
     "NC10+ANME":1,
     "ANME2d":1,
-    "Oct":1,
-    "BES":1,
+    "Oct":0,
+    "BES":0,
     "previous data":1,
 }
 
@@ -89,8 +89,8 @@ def quick_plot(ax,x,y,xerr,yerr,msk):
                     markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)          
         ax.errorbar(AOM_P[x],AOM_P[y],xerr=AOM_P[xerr],yerr=AOM_P[yerr], markersize=14,label=r'S-AOM (previous study)', fmt='s', 
                     markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-        ax.errorbar(AOM_P_LS[x],AOM_P_LS[y],xerr=AOM_P_LS[xerr],yerr=AOM_P_LS[yerr], markersize=14, fmt='s', 
-                markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+        # ax.errorbar(AOM_P_LS[x],AOM_P_LS[y],xerr=AOM_P_LS[xerr],yerr=AOM_P_LS[yerr], markersize=14, fmt='s', 
+        #         markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
         ax.errorbar(AOM_ono[x],AOM_ono[y],xerr=AOM_ono[xerr],yerr=AOM_ono[yerr], markersize=14, fmt='s', 
                 markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
         ax.errorbar(AOM_wegener[x],AOM_wegener[y],xerr=AOM_wegener[xerr],yerr=AOM_wegener[yerr], markersize=14, fmt='s', 
@@ -115,7 +115,7 @@ ax1.xaxis.set_minor_locator(MultipleLocator(1))
 
 set_axis(ax2,'$\delta^{13}$C (\u2030)','$\delta$D (\u2030)')
 ax2.yaxis.set_minor_locator(MultipleLocator(20))
-ax2.xaxis.set_minor_locator(MultipleLocator(4))
+ax2.xaxis.set_minor_locator(MultipleLocator(2))
 
 # The compilation of isotope fractionation factors
 alphas={
