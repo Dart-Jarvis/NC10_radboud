@@ -129,6 +129,9 @@ alphas={
     "OH": alpha_raw[alpha_raw['Label']=="OH"],
     "Cl": alpha_raw[alpha_raw['Label']=="Cl"],
     "red_mass": alpha_raw[alpha_raw['Label']=="red_mass"],
+    "Ab initio (sMMO)": alpha_raw[alpha_raw['Label']=="sMMO"],
+    "Ab initio (MCR INT)":alpha_raw[alpha_raw['Label']=="MCR (with INT)"],
+    "Ab initio (MCR no INT)":alpha_raw[alpha_raw['Label']=="MCR (no INT)"]
 }
 
 
@@ -169,15 +172,18 @@ figddf,axddf=plt.subplots(figsize=(8,8))
 
 maskf={
     "NC10": 1,
-    "NC10+ANME":1,
-    "ANME2d":1,
-    "Oct":1,
-    "BES":1,
-    "S-AOM":1,
+    "NC10+ANME":0,
+    "ANME2d":0,
+    "Oct":0,
+    "BES":0,
+    "S-AOM":0,
     "pMMO_P":1,
-    "OH":1,
-    "Cl":1,
-    "red_mass":1
+    "OH":0,
+    "Cl":0,
+    "red_mass":0,
+    "Ab initio (sMMO)": 1,
+    "Ab initio (MCR INT)": 0,
+    "Ab initio (MCR no INT)": 0
 }
 
 def plot_isotopef(ax,x,y,xerr,yerr,msk):
@@ -247,7 +253,10 @@ color_dict={
     "pMMO_P":["white","o",-1],
     "OH":["gray","D",-2],
     "Cl":["gray","^",-2],
-    "red_mass":["gray","v",-1]
+    "red_mass":["gray","v",-1],
+    "Ab initio (sMMO)":["blue","o",2],
+    "Ab initio (MCR INT)":["red","s",2],
+    "Ab initio (MCR no INT)":["orange","s",2]
 }
 fig3,ax3=plt.subplots(figsize=(8,8))
 
@@ -256,9 +265,9 @@ for key in alphas.keys():
     if maskf[key]!=0:
         for i in range(len(temp)):
             if i==0:
-                ax3.scatter(series,temp[i,1:13:2], c=color_dict[key][0], marker=color_dict[key][1], s=60, edgecolors='black',label=key, zorder=color_dict[key][2])
+                ax3.scatter(series,temp[i,1:13:2], c=color_dict[key][0], marker=color_dict[key][1], s=120, edgecolors='black',label=key, zorder=color_dict[key][2])
             else:
-                ax3.scatter(series,temp[i,1:13:2], c=color_dict[key][0], marker=color_dict[key][1], edgecolors='black', s=60, zorder=color_dict[key][2])
+                ax3.scatter(series,temp[i,1:13:2], c=color_dict[key][0], marker=color_dict[key][1], edgecolors='black', s=120, zorder=color_dict[key][2])
 
 
 ax3.legend(fontsize=18, bbox_to_anchor=(1.04,0.9))

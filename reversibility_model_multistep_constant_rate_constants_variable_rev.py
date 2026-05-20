@@ -7,7 +7,23 @@ import pandas as pd
 from matplotlib.ticker import MultipleLocator
 
 output=False # True if you want to save the plots as pdf
-ff="experiment" # Select the KIEs in the model: 
+ff="ab initio" # Select the KIEs in the model: 
+model="no INT"
+# Constant rate constants for each model run.
+# Reversibility is not prescribed in this version; it is calculated dynamically as
+# J1b/J1f and J2b/J2f from the evolving isotope/species abundances.
+# Each tuple is: (k1f, k1b, k2f, k2b), where
+# step 1 = CH4 <-> CH3-SCoM and step 2 = CH3-SCoM <-> CO2.
+rate_constant_list=[
+    (1.0, 0.0, 1.0, 0.0),
+    (1.0, 0.2, 1.0, 0.2),
+    (1.0, 0.3, 1.0, 0.3),
+    (1.0, 0.5, 1.0, 0.5),
+    (1.0, 0.9, 1.0, 0.9),
+]
+t_lower=0.000 # minimum time for time interval
+time_list=[8.5,11.0,13.0,16.0,18.0] # Maximum time for time interval, relevant to the final fraction of methane left
+num=100000 # Number of tim steps
 # "experiment": data from Scheller et al., 2013;
 # "Ab initio": ab initio calculation in this study
 dDH2O = -50.0 # permil dD_H2O
@@ -55,21 +71,38 @@ if ff=="experiment":
     print(a1cff, "\n", a1dfnet, "\n", a1cdffnet, "\n", a1ddffnet)
 
 if ff=="ab initio": # Ab initio calculation gets the fractionation in the backward dirction
-    a1cfb=0.93277
-    a1dfbp=0.53129
-    a1dfbs=0.84452
-    a1cdfbp=0.49277
-    a1cdfbs=0.78818
-    a1ddfbp=0.44034
-    a1ddfbs=0.50105
+    if model=="no INT":
+        a1cff=0.9364
+        a1dffp=0.5203
+        a1dffs=0.8341
+        a1cdffp=0.4844
+        a1cdffs=0.7814
+        a1ddffp=0.4293
+        a1ddffs=0.6972
+    # # Calculate the fractionation factors of the forward reactions for mcr
+    # a1cff=a1cfb/a1cfeq
+    # a1dffp=a1dfbp/a1dfeqp # primary isotope effect backwards
+    # a1dffs=a1dfbs/a1dfeqs # secondary isotope effect backwards
+    # a1cdffp=a1cdfbp/a1cdfeqp
+    # a1cdffs=a1cdfbs/a1cdfeqs
+    # a1ddffp=a1ddfbp/a1ddfeqp
+    # a1ddffs=a1ddfbs/a1ddfeqs
+    if model=="INT":
+        a1cff=0.9368
+        a1dffp=0.5276
+        a1dffs=0.8517
+        a1cdffp=0.4915
+        a1cdffs=0.7983
+        a1ddffp=0.4447
+        a1ddffs=0.7267
     # Calculate the fractionation factors of the forward reactions for mcr
-    a1cff=a1cfb/a1cfeq
-    a1dffp=a1dfbp/a1dfeqp # primary isotope effect backwards
-    a1dffs=a1dfbs/a1dfeqs # secondary isotope effect backwards
-    a1cdffp=a1cdfbp/a1cdfeqp
-    a1cdffs=a1cdfbs/a1cdfeqs
-    a1ddffp=a1ddfbp/a1ddfeqp
-    a1ddffs=a1ddfbs/a1ddfeqs
+    a1cfb=a1cff*a1cfeq
+    a1dfbp=a1dffp*a1dfeqp # primary isotope effect backwards
+    a1dfbs=a1dffs*a1dfeqs # secondary isotope effect backwards
+    a1cdfbp=a1cdffp/a1cdfeqp
+    a1cdfbs=a1cdffs/a1cdfeqs
+    a1ddfbp=a1ddffp/a1ddfeqp
+    a1ddfbs=a1ddffs/a1ddfeqs
     # Calculate net ff
     a1dfnet=a1dffp/4+3/4*a1dffs
     a1cdffnet=a1cdffp/4+3/4*a1cdffs
@@ -85,6 +118,14 @@ a2cff=0.979
 a2dff=1.00
 a2cdff=gamma2cd*a2cff*a2dff
 a2ddff=gamma2dd*a2dff**2
+a2ceq=1/np.exp(18.1/1000)*1/np.exp(15.8/1000)*1/np.exp(16.9/1000)*1/np.exp(-3.3/1000)*1/np.exp(1.9/1000)
+a2deq=1/np.exp(42.9/1000)*((1/np.exp(81.3/1000)+1/np.exp(84.0/1000))/2)*1/np.exp(-78.2/1000)*1/np.exp(-70.5/1000)*1/np.exp(8.5/1000)
+a2cfb=a2cff*a2ceq
+a2dfb=a2dff*a2deq
+# Back-reaction clumped fractionation factors for the lumped CH3-SCoM <-> CO2 step.
+# These mirror the forward definitions and assume gamma values are unchanged.
+a2cdfb=gamma2cd*a2cfb*a2dfb
+a2ddfb=gamma2dd*a2dfb**2
 
 # The hydrogen of the first step is assumed to be in equilibrium with HS-COB, equilibrium fractionation from Wegener et al.
 ahscobeq=0.4686 # aHSCOB-H2O=R_H2O/R_HSCOB HSCOB-->H2O, equilibrium value
@@ -113,8 +154,13 @@ abundance=[
 # 5.5301E-06,
 # 1.0029E-07
 
-R=np.zeros(17) # abundance of each species involved in the reaction network
-dRdt=np.zeros(17)
+# Species index map:
+# 0:5   intracellular CH4 isotopologues: 12CH4, 13CH4, 12CH3D, 13CH3D, 12CH2D2
+# 5:10  CH3-SCoM isotopologues:         12CH3, 13CH3, 12CH2D, 13CH2D, 12CHD2
+# 10:12 HS-CoB isotopologues:           H, D
+# 12:17 extracellular CH4 isotopologues, same order as 0:5
+# 17:19 CO2 isotopologues:              12CO2, 13CO2
+R=np.zeros(19) # abundance of each species involved in the reaction network
 
 # Normalize the abundance, assuming the chemicals inside the cell (CH4,CH3-SCoM, HS-Cob) has a total abundance of 1 for each.
 for i in range(5):    
@@ -126,28 +172,80 @@ R[5:10]=R[0:5]
 R[10]=1.0/(1.0+RHSCOB) # H
 R[11]=(1-R[10]) # D
 R[12:17]=R[0:5]*10 # Methane isotopologue abundances outside, assuming the reservoir is 10 times larger
-R0=R
+R[17]=0.0 # 12CO2 pool produced by oxidation
+R[18]=0.0 # 13CO2 pool produced by oxidation
+R0=R.copy()
+# Helper functions for flux calculations
+def step1_fluxes(R,k):
+    k1f,k1b,k2f,k2b=k
+    J1f = (k1f*R[0] + k1f*R[1]*a1cff
+           + (1/4*k1f*R[2]*a1dffp + 3/4*k1f*R[2]*a1dffs)
+           + (1/4*k1f*R[3]*a1cdffp + 3/4*k1f*R[3]*a1cdffs)
+           + (1/2*k1f*R[4]*a1ddffp + 1/2*k1f*R[4]*a1ddffs))
+
+    J1b = (k1b*R[5]*R[10] + k1b*R[6]*a1cfb*R[10]
+           + (k1b*R[5]*R[11]*a1dfbp + k1b*R[7]*R[10]*a1dfbs)
+           + (k1b*R[6]*R[11]*a1cdfbp + k1b*R[8]*R[10]*a1cdfbs)
+           + (k1b*R[7]*R[11]*a1ddfbp + k1b*R[9]*R[10]*a1ddfbs))
+    return J1f,J1b
+
+def step2_fluxes(R,k):
+    k1f,k1b,k2f,k2b=k
+
+    # Forward CH3-SCoM -> CO2 absolute fluxes.
+    F2_12CH3  = k2f*R[5]
+    F2_13CH3  = k2f*R[6]*a2cff
+    F2_12CH2D = k2f*R[7]*a2dff
+    F2_13CH2D = k2f*R[8]*a2cdff
+    F2_12CHD2 = k2f*R[9]*a2ddff
+
+    # Backward CO2 -> CH3-SCoM absolute fluxes. Carbon comes from the CO2 pool;
+    # H/D sites in the regenerated methyl group are supplied from water.
+    XH2O = 1.0-FH2O
+    XD2O = FH2O
+    B2_12CH3  = k2b*R[17]*(XH2O**3)
+    B2_12CH2D = k2b*R[17]*(3*XH2O**2*XD2O)*a2dfb
+    B2_12CHD2 = k2b*R[17]*(3*XH2O*XD2O**2)*a2ddfb
+    B2_13CH3  = k2b*R[18]*a2cfb*(XH2O**3)
+    B2_13CH2D = k2b*R[18]*(3*XH2O**2*XD2O)*a2cdfb
+
+    F2_12CO2 = F2_12CH3 + F2_12CH2D + F2_12CHD2
+    F2_13CO2 = F2_13CH3 + F2_13CH2D
+    B2_12CO2 = B2_12CH3 + B2_12CH2D + B2_12CHD2
+    B2_13CO2 = B2_13CH3 + B2_13CH2D
+
+    J2f = F2_12CO2 + F2_13CO2
+    J2b = B2_12CO2 + B2_13CO2
+
+    return {
+        "J2f": J2f, "J2b": J2b,
+        "F2_12CH3": F2_12CH3, "F2_13CH3": F2_13CH3,
+        "F2_12CH2D": F2_12CH2D, "F2_13CH2D": F2_13CH2D,
+        "F2_12CHD2": F2_12CHD2,
+        "B2_12CH3": B2_12CH3, "B2_13CH3": B2_13CH3,
+        "B2_12CH2D": B2_12CH2D, "B2_13CH2D": B2_13CH2D,
+        "B2_12CHD2": B2_12CHD2,
+        "F2_12CO2": F2_12CO2, "F2_13CO2": F2_13CO2,
+        "B2_12CO2": B2_12CO2, "B2_13CO2": B2_13CO2,
+    }
+
 # Construct ode
 def dfdt(t,R,k):
-    k1f,k1b=k     # unpack fluxes
-    # Calculate total forward and backward fluxes for the first step.
-    Jf = (k1f*R[0] + k1f*R[1]*a1cff
-          + (1/4*k1f*R[2]*a1dffp + 3/4*k1f*R[2]*a1dffs)
-          + (1/4*k1f*R[3]*a1cdffp + 3/4*k1f*R[3]*a1cdffs)
-          + (1/2*k1f*R[4]*a1ddffp + 1/2*k1f*R[4]*a1ddffs))
+    k1f,k1b,k2f,k2b=k
+    Jf,Jb=step1_fluxes(R,k)
 
-    Jb = (k1b*R[5]*R[10] + k1b*R[6]*a1cfb*R[10]
-          + (k1b*R[5]*R[11]*a1dfbp + k1b*R[7]*R[10]*a1dfbs)
-          + (k1b*R[6]*R[11]*a1cdfbp + k1b*R[8]*R[10]*a1cdfbs)
-          + (k1b*R[7]*R[11]*a1ddfbp + k1b*R[9]*R[10]*a1ddfbs))
     # Apply steady state for HS-CoB species
     fhscobf=R[10]+R[11]*ahscobf
     fhscobb=(1-FH2O)+FH2O*ahscobb
     Jfhscob=(Jf-Jb)/(1-rev_hscob)
     Jbhscob=(Jf-Jb)*rev_hscob/(1-rev_hscob)
-    # Apply steady state for CH3 species
-    J2f=Jf-Jb
-    fch3f=R[5]+R[6]*a2cff+R[7]*a2dff+R[8]*a2cdff+R[9]*a2ddff # Partition of the fluxes
+
+    # Explicit reversible CH3-SCoM <-> CO2 step with fixed forward and backward
+    # rate constants. Reversibility is therefore variable and is diagnosed as
+    # J2b/J2f at each time point.
+    flux2=step2_fluxes(R,k)
+
+    dRdt=np.zeros_like(R)
     Jin=(Jf-Jb)/(1-rev_tr)
     Jout=(Jf-Jb)*rev_tr/(1-rev_tr)
     fch4in=sum(R[12:17]) # Total methane abundance outside
@@ -157,11 +255,11 @@ def dfdt(t,R,k):
     dRdt[2]=Jin*R[14]/fch4in-Jout*R[2]/fch4out-1/4*k1f*R[2]*a1dffp-3/4*k1f*R[2]*a1dffs+k1b*R[5]*R[11]*a1dfbp+k1b*R[7]*R[10]*a1dfbs # 12CH3D
     dRdt[3]=Jin*R[15]/fch4in-Jout*R[3]/fch4out-1/4*k1f*R[3]*a1cdffp-3/4*k1f*R[3]*a1cdffs+k1b*R[6]*R[11]*a1cdfbp+k1b*R[8]*R[10]*a1cdfbs # 13CH3D
     dRdt[4]=Jin*R[16]/fch4in-Jout*R[4]/fch4out-1/2*k1f*R[4]*a1ddffp-1/2*k1f*R[4]*a1ddffs+k1b*R[7]*R[11]*a1ddfbp+k1b*R[9]*R[10]*a1ddfbs #12CH2D2
-    dRdt[5]=k1f*R[0]+1/4*k1f*R[2]*a1dffp-k1b*R[5]*R[11]*a1dfbp-k1b*R[5]*R[10]-J2f*R[5]/fch3f # 12CH3
-    dRdt[6]=k1f*R[1]*a1cff+1/4*k1f*R[3]*a1cdffp-k1b*R[6]*R[11]*a1cdfbp-k1b*R[6]*R[10]*a1cfb-J2f*R[6]*a2cff/fch3f # 13CH3
-    dRdt[7]=3/4*k1f*R[2]*a1dffs+1/2*k1f*R[4]*a1ddffp-k1b*R[7]*R[10]*a1dfbs-k1b*R[7]*R[11]*a1ddfbp-J2f*R[7]*a2dff/fch3f # 12CH2D
-    dRdt[8]=3/4*k1f*R[3]*a1cdffs-k1b*R[8]*R[10]*a1cdfbs-J2f*R[8]*a2cdff/fch3f # 13CH2D
-    dRdt[9]=1/2*k1f*R[4]*a1ddffs-k1b*R[9]*R[10]*a1ddfbs-J2f*R[9]*a2ddff/fch3f # 12CHD2
+    dRdt[5]=k1f*R[0]+1/4*k1f*R[2]*a1dffp-k1b*R[5]*R[11]*a1dfbp-k1b*R[5]*R[10]-flux2["F2_12CH3"]+flux2["B2_12CH3"] # 12CH3
+    dRdt[6]=k1f*R[1]*a1cff+1/4*k1f*R[3]*a1cdffp-k1b*R[6]*R[11]*a1cdfbp-k1b*R[6]*R[10]*a1cfb-flux2["F2_13CH3"]+flux2["B2_13CH3"] # 13CH3
+    dRdt[7]=3/4*k1f*R[2]*a1dffs+1/2*k1f*R[4]*a1ddffp-k1b*R[7]*R[10]*a1dfbs-k1b*R[7]*R[11]*a1ddfbp-flux2["F2_12CH2D"]+flux2["B2_12CH2D"] # 12CH2D
+    dRdt[8]=3/4*k1f*R[3]*a1cdffs-k1b*R[8]*R[10]*a1cdfbs-flux2["F2_13CH2D"]+flux2["B2_13CH2D"] # 13CH2D
+    dRdt[9]=1/2*k1f*R[4]*a1ddffs-k1b*R[9]*R[10]*a1ddfbs-flux2["F2_12CHD2"]+flux2["B2_12CHD2"] # 12CHD2
     dRdt[10]=(k1f*R[0]+k1f*R[1]*a1cff
     +3/4*k1f*R[2]*a1dffs+3/4*k1f*R[3]*a1cdffs+1/2*k1f*R[4]*a1ddffs
     -k1b*R[5]*R[10]-k1b*R[6]*R[10]*a1cfb
@@ -175,23 +273,18 @@ def dfdt(t,R,k):
     dRdt[14]=-Jin*R[14]/fch4in+Jout*R[2]/fch4out
     dRdt[15]=-Jin*R[15]/fch4in+Jout*R[3]/fch4out
     dRdt[16]=-Jin*R[16]/fch4in+Jout*R[4]/fch4out
+    dRdt[17]=flux2["F2_12CO2"]-flux2["B2_12CO2"] # 12CO2
+    dRdt[18]=flux2["F2_13CO2"]-flux2["B2_13CO2"] # 13CO2
     return dRdt
 
-# Define a separate function to calculate the evolution of reversibility
+# Define separate functions to calculate the evolution of reversibility.
 def jb_jf_ratio(t, R, k):
-    k1f, k1b = k
+    Jf,Jb=step1_fluxes(R,k)
+    return Jb/Jf if Jf != 0 else np.nan
 
-    Jf = (k1f*R[0] + k1f*R[1]*a1cff
-          + (1/4*k1f*R[2]*a1dffp + 3/4*k1f*R[2]*a1dffs)
-          + (1/4*k1f*R[3]*a1cdffp + 3/4*k1f*R[3]*a1cdffs)
-          + (1/2*k1f*R[4]*a1ddffp + 1/2*k1f*R[4]*a1ddffs))
-
-    Jb = (k1b*R[5]*R[10] + k1b*R[6]*a1cfb*R[10]
-          + (k1b*R[5]*R[11]*a1dfbp + k1b*R[7]*R[10]*a1dfbs)
-          + (k1b*R[6]*R[11]*a1cdfbp + k1b*R[8]*R[10]*a1cdfbs)
-          + (k1b*R[7]*R[11]*a1ddfbp + k1b*R[9]*R[10]*a1ddfbs))
-
-    return Jb / Jf
+def j2b_j2f_ratio(t, R, k):
+    flux2=step2_fluxes(R,k)
+    return flux2["J2b"]/flux2["J2f"] if flux2["J2f"] != 0 else np.nan
 
 # Process the data
 def process(sol):
@@ -211,30 +304,31 @@ def process(sol):
     D12CH2D2_t=(sol.y[16]/sol.y[12]/sto_DD-1)*1000
     return tot,fCH4,d13C_t,dD_t,D13CH3D_t,D12CH2D2_t
 
-# Define a function to model the change of isotope fractionation with reversibility
-def model_rev(rev, tmax, num):
-    k1f_input=1.0
-    k1b_input=k1f_input*rev
-    k=[k1f_input,k1b_input]
+# Define a function to model isotope evolution with fixed rate constants.
+def model_rate_constants(k1f, k1b, k2f, k2b, tmax, num):
+    k=[k1f,k1b,k2f,k2b]
     tint=np.linspace(t_lower,tmax,num) 
     solution=solve_ivp(dfdt,(t_lower,tmax),R0,args=(k,),t_eval=tint,atol=1.0e-12,rtol=1.0e-9)
     tot_sol,fCH4_sol,d13C_sol,dD_sol,D13CH3D_sol,D12CH2D2_sol=process(solution)
-    rev_sol = np.array([jb_jf_ratio(t, R, k) for t, R in zip(solution.t, solution.y.T)])
-    return tot_sol,fCH4_sol,rev_sol,d13C_sol,dD_sol,D13CH3D_sol,D12CH2D2_sol
+    rev1_sol = np.array([jb_jf_ratio(t, R, k) for t, R in zip(solution.t, solution.y.T)])
+    rev2_sol = np.array([j2b_j2f_ratio(t, R, k) for t, R in zip(solution.t, solution.y.T)])
+    return tot_sol,fCH4_sol,rev1_sol,rev2_sol,d13C_sol,dD_sol,D13CH3D_sol,D12CH2D2_sol
 
-rev_list=[0.0,0.2,0.3,0.45,0.98] # The list of reversibility to be plotted, each value ranges from 0 to 1
-t_lower=0.000 # minimum time for time interval
-time_list=[8.5,11.0,13.0,16.0,300.0] # Maximum time for time interval, relevant to the final fraction of methane left
-num=100000 # Number of tim steps
-tot=np.zeros([len(rev_list),num])
-fCH4=np.zeros([len(rev_list),num])
-rev=np.zeros([len(rev_list),num])
-d13C=np.zeros([len(rev_list),num])
-dD=np.zeros([len(rev_list),num])
-D13CH3D=np.zeros([len(rev_list),num])
-D12CH2D2=np.zeros([len(rev_list),num])
-for i in range (len(rev_list)):
-    tot[i,:],fCH4[i,:],rev[i,:],d13C[i,:],dD[i,:],D13CH3D[i,:],D12CH2D2[i,:]=model_rev(rev_list[i],time_list[i],num)
+if len(time_list) != len(rate_constant_list):
+    raise ValueError("time_list must have the same length as rate_constant_list.")
+
+n_models=len(rate_constant_list)
+tot=np.zeros([n_models,num])
+fCH4=np.zeros([n_models,num])
+rev1=np.zeros([n_models,num])
+rev2=np.zeros([n_models,num])
+d13C=np.zeros([n_models,num])
+dD=np.zeros([n_models,num])
+D13CH3D=np.zeros([n_models,num])
+D12CH2D2=np.zeros([n_models,num])
+for i in range(n_models):
+    k1f_i,k1b_i,k2f_i,k2b_i=rate_constant_list[i]
+    tot[i,:],fCH4[i,:],rev1[i,:],rev2[i,:],d13C[i,:],dD[i,:],D13CH3D[i,:],D12CH2D2[i,:]=model_rate_constants(k1f_i,k1b_i,k2f_i,k2b_i,time_list[i],num)
 
 # Plotting
 # Import data
@@ -275,11 +369,11 @@ def set_axis(ax,xlabel,ylabel):
     ax.tick_params(which='minor',direction='out', top=True, right=True, length=4, width=2.0, labelsize=32)
 
 fig_bulk,ax_bulk=plt.subplots(figsize=(12,12))
-ax_bulk.plot(d13C[0,:],dD[0,:], linewidth=2.5, color="black", linestyle="-.", alpha=1.0, label="Model, R="+str(rev_list[0]),zorder=-2)
-ax_bulk.plot(d13C[1,:],dD[1,:], linewidth=2.5, linestyle=":", color="purple", alpha=1.0,label="Model, R="+str(rev_list[1]),zorder=-2)
-ax_bulk.plot(d13C[2,:],dD[2,:], linewidth=2.5, linestyle="--", color="blue", alpha=1.0,label="Model, R="+str(rev_list[2]),zorder=-2)
-ax_bulk.plot(d13C[3,:],dD[3,:], linewidth=2.5, linestyle=(5,(10,3)), color="orange", alpha=1.0, label="Model, R="+str(rev_list[3]), zorder=-2)
-ax_bulk.plot(d13C[4,:],dD[4,:], linewidth=2.5, color="red", alpha=1.0, label="Model, R="+str(rev_list[4]), zorder=-2)
+ax_bulk.plot(d13C[0,:],dD[0,:], linewidth=2.5, color="black", linestyle="-.", alpha=1.0, label="Model, k="+str(rate_constant_list[0]),zorder=-2)
+ax_bulk.plot(d13C[1,:],dD[1,:], linewidth=2.5, linestyle=":", color="purple", alpha=1.0,label="Model, k="+str(rate_constant_list[1]),zorder=-2)
+ax_bulk.plot(d13C[2,:],dD[2,:], linewidth=2.5, linestyle="--", color="blue", alpha=1.0,label="Model, k="+str(rate_constant_list[2]),zorder=-2)
+ax_bulk.plot(d13C[3,:],dD[3,:], linewidth=2.5, linestyle=(5,(10,3)), color="orange", alpha=1.0, label="Model, k="+str(rate_constant_list[3]), zorder=-2)
+ax_bulk.plot(d13C[4,:],dD[4,:], linewidth=2.5, color="red", alpha=1.0, label="Model, k="+str(rate_constant_list[4]), zorder=-2)
 
 
 ax_bulk.errorbar(ANME2d["d13C"],ANME2d["dD"],xerr=ANME2d["cse"],yerr=ANME2d["dse"], markersize=18,label=r'N-AOM (this study)', fmt='o', 

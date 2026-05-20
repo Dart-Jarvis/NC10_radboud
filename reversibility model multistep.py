@@ -7,7 +7,12 @@ import pandas as pd
 from matplotlib.ticker import MultipleLocator
 
 output=False # True if you want to save the plots as pdf
-ff="experiment" # Select the KIEs in the model: 
+ff="ab initio" # Select the KIEs in the model: 
+model="no INT"
+rev_list=[0.0,0.2,0.3,0.5,0.9] # The list of reversibility to be plotted, each value ranges from 0 to 1
+t_lower=0.000 # minimum time for time interval
+time_list=[8.5,11.0,13.0,16.0,18.0] # Maximum time for time interval, relevant to the final fraction of methane left
+num=100000 # Number of tim steps
 # "experiment": data from Scheller et al., 2013;
 # "Ab initio": ab initio calculation in this study
 dDH2O = -50.0 # permil dD_H2O
@@ -55,21 +60,38 @@ if ff=="experiment":
     print(a1cff, "\n", a1dfnet, "\n", a1cdffnet, "\n", a1ddffnet)
 
 if ff=="ab initio": # Ab initio calculation gets the fractionation in the backward dirction
-    a1cfb=0.93277
-    a1dfbp=0.53129
-    a1dfbs=0.84452
-    a1cdfbp=0.49277
-    a1cdfbs=0.78818
-    a1ddfbp=0.44034
-    a1ddfbs=0.50105
+    if model=="no INT":
+        a1cff=0.9364
+        a1dffp=0.5203
+        a1dffs=0.8341
+        a1cdffp=0.4844
+        a1cdffs=0.7814
+        a1ddffp=0.4293
+        a1ddffs=0.6972
+    # # Calculate the fractionation factors of the forward reactions for mcr
+    # a1cff=a1cfb/a1cfeq
+    # a1dffp=a1dfbp/a1dfeqp # primary isotope effect backwards
+    # a1dffs=a1dfbs/a1dfeqs # secondary isotope effect backwards
+    # a1cdffp=a1cdfbp/a1cdfeqp
+    # a1cdffs=a1cdfbs/a1cdfeqs
+    # a1ddffp=a1ddfbp/a1ddfeqp
+    # a1ddffs=a1ddfbs/a1ddfeqs
+    if model=="INT":
+        a1cff=0.9368
+        a1dffp=0.5276
+        a1dffs=0.8517
+        a1cdffp=0.4915
+        a1cdffs=0.7983
+        a1ddffp=0.4447
+        a1ddffs=0.7267
     # Calculate the fractionation factors of the forward reactions for mcr
-    a1cff=a1cfb/a1cfeq
-    a1dffp=a1dfbp/a1dfeqp # primary isotope effect backwards
-    a1dffs=a1dfbs/a1dfeqs # secondary isotope effect backwards
-    a1cdffp=a1cdfbp/a1cdfeqp
-    a1cdffs=a1cdfbs/a1cdfeqs
-    a1ddffp=a1ddfbp/a1ddfeqp
-    a1ddffs=a1ddfbs/a1ddfeqs
+    a1cfb=a1cff*a1cfeq
+    a1dfbp=a1dffp*a1dfeqp # primary isotope effect backwards
+    a1dfbs=a1dffs*a1dfeqs # secondary isotope effect backwards
+    a1cdfbp=a1cdffp/a1cdfeqp
+    a1cdfbs=a1cdffs/a1cdfeqs
+    a1ddfbp=a1ddffp/a1ddfeqp
+    a1ddfbs=a1ddffs/a1ddfeqs
     # Calculate net ff
     a1dfnet=a1dffp/4+3/4*a1dffs
     a1cdffnet=a1cdffp/4+3/4*a1cdffs
@@ -79,12 +101,15 @@ if ff=="ab initio": # Ab initio calculation gets the fractionation in the backwa
 
 # The kinetic isotope effect of the second step (CH3-SCoM --> CHO-MFR), from the best-fit values in Wegener et al., 2021, Table S6
 # Gamma values are set at 1
-gamma2cd=1.000
-gamma2dd=1.000
+
 a2cff=0.979
 a2dff=1.00
 a2cdff=gamma2cd*a2cff*a2dff
 a2ddff=gamma2dd*a2dff**2
+a2ceq=1/np.exp(18.1/1000)*1/np.exp(15.8/1000)*1/np.exp(16.9/1000)*1/np.exp(-3.3/1000)*1/np.exp(1.9/1000)
+a2deq=1/np.exp(42.9/1000)*((1/np.exp(81.3/1000)+1/np.exp(84.0/1000))/2)*1/np.exp(-78.2/1000)*1/np.exp(-70.5/1000)*1/np.exp(8.5/1000)
+a2cfb=a2cff*a2ceq
+a2dfb=a2dff*a2deq
 
 # The hydrogen of the first step is assumed to be in equilibrium with HS-COB, equilibrium fractionation from Wegener et al.
 ahscobeq=0.4686 # aHSCOB-H2O=R_H2O/R_HSCOB HSCOB-->H2O, equilibrium value
@@ -222,10 +247,6 @@ def model_rev(rev, tmax, num):
     rev_sol = np.array([jb_jf_ratio(t, R, k) for t, R in zip(solution.t, solution.y.T)])
     return tot_sol,fCH4_sol,rev_sol,d13C_sol,dD_sol,D13CH3D_sol,D12CH2D2_sol
 
-rev_list=[0.0,0.2,0.3,0.45,0.98] # The list of reversibility to be plotted, each value ranges from 0 to 1
-t_lower=0.000 # minimum time for time interval
-time_list=[8.5,11.0,13.0,16.0,300.0] # Maximum time for time interval, relevant to the final fraction of methane left
-num=100000 # Number of tim steps
 tot=np.zeros([len(rev_list),num])
 fCH4=np.zeros([len(rev_list),num])
 rev=np.zeros([len(rev_list),num])
