@@ -8,12 +8,12 @@ from matplotlib.ticker import MultipleLocator
 
 output=False # True if you want to save the plots as pdf
 ff="ab initio" # Select the KIEs in the model: 
-model="no INT"
-rev1_list=[0.0,0.35,0.5,0.75,0.99] # First-step reversibility list, CH4 <-> CH3-SCoM; each value ranges from 0 to <1
-rev2_list=[0.0,0.5,0.5,0.5,0.99] # Second-step reversibility list, CH3-SCoM <-> CHO-MFR; each value ranges from 0 to <1
-rev3_list=[0.0,0.9,0.5,0.3,0.99] # Third-step reversibility list, CHO-MFR <-> CO2; each value ranges from 0 to <1
+model="INT"
+rev1_list=[0.0,0.35,0.55,0.82,0.95] # First-step reversibility list, CH4 <-> CH3-SCoM; each value ranges from 0 to <1
+rev2_list=[0.0,0.85,0.55,0.48,0.99] # Second-step reversibility list, CH3-SCoM <-> CHO-MFR; each value ranges from 0 to <1
+rev3_list=[0.0,0.9,0.55,0.15,0.95] # Third-step reversibility list, CHO-MFR <-> CO2; each value ranges from 0 to <1
 t_lower=0.000 # minimum time for time interval
-time_list=[40.0,70.0,80.0,150.0,500.0] # Maximum time for time interval, relevant to the final fraction of methane left
+time_list=[40.0,55.0,95.0,260.0,500.0] # Maximum time for time interval, relevant to the final fraction of methane left
 num=100000 # Number of tim steps
 # "experiment": data from Scheller et al., 2013;
 # "Ab initio": ab initio calculation in this study
@@ -106,8 +106,8 @@ a2deq=1/np.exp(42.9/1000)*((1/np.exp(81.3/1000)+1/np.exp(84.0/1000))/2)*1/np.exp
 # KFFs from Wegener et al., 2022, Sci Adv
 a2cff=0.979 # 13C effect, CH3-SCoM -> CHO-MFR
 a2dff=0.999 # D effect, CH3-SCoM -> CHO-MFR
-gammaCDff2=0.978
-gammaDDff2=0.94
+gammaCDff2=0.989
+gammaDDff2=0.955
 gammaCDfb2=1.0
 gammaDDfb2=1.0
 a2cdff=gammaCDff2*a2cff*a2dff # 13C-D clumped effect, CH3-SCoM -> CHO-MFR
@@ -443,6 +443,59 @@ def set_axis(ax,xlabel,ylabel):
     ax.tick_params(which='major',direction='out', top=True, right=True, length=8, width=2.5, labelsize=32)
     ax.tick_params(which='minor',direction='out', top=True, right=True, length=4, width=2.0, labelsize=32)
 
+def normalize_dat(data): # Get rid of the influence of T0 values
+    norm=np.zeros([len(time_list),data.shape[1]])
+    for i in range(norm.shape[0]):
+        norm[i,:]=np.log((data[i,:]+1000)/(data[i,0]+1000))
+    return norm
+
+def normalize_clumped_dat(data): # Get rid of the influence of T0 values
+    norm=np.zeros([len(time_list),data.shape[1]])
+    for i in range(norm.shape[0]):
+        norm[i,:]=data[i,:]-data[i,0]
+    return norm
+
+normC=normalize_dat(d13C)
+normD=normalize_dat(dD)
+normCD=normalize_clumped_dat(D13CH3D)
+normDD=normalize_clumped_dat(D12CH2D2)
+
+fig_bulk0,ax_bulk0=plt.subplots(figsize=(12,12))
+ax_bulk0.plot(normC[0,:],normD[0,:], linewidth=2.5, color="black", linestyle="-.", alpha=1.0, label="Model, R1="+str(rev1_list[0])+", R2="+str(rev2_list[0])+", R3="+str(rev3_list[0]),zorder=1)
+ax_bulk0.plot(normC[1,:],normD[1,:], linewidth=2.5, linestyle=":", color="purple", alpha=1.0,label="Model, R1="+str(rev1_list[1])+", R2="+str(rev2_list[1])+", R3="+str(rev3_list[1]),zorder=1)
+ax_bulk0.plot(normC[2,:],normD[2,:], linewidth=2.5, linestyle="--", color="blue", alpha=1.0,label="Model, R1="+str(rev1_list[2])+", R2="+str(rev2_list[2])+", R3="+str(rev3_list[2]),zorder=1)
+ax_bulk0.plot(normC[3,:],normD[3,:], linewidth=2.5, linestyle=(5,(10,3)), color="orange", alpha=1.0, label="Model, R1="+str(rev1_list[3])+", R2="+str(rev2_list[3])+", R3="+str(rev3_list[3]), zorder=1)
+ax_bulk0.plot(normC[4,:],normD[4,:], linewidth=2.5, color="red", alpha=1.0, label="Model, R1="+str(rev1_list[4])+", R2="+str(rev2_list[4])+", R3="+str(rev3_list[4]), zorder=1)
+ax_bulk0.errorbar(ANME2d["ln(c/c0)"],ANME2d["ln(d/d0)"],xerr=ANME2d["lncse"],yerr=ANME2d["lndse"], markersize=12,label=r'N-AOM (this study)', fmt='o', 
+        markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+ax_bulk0.errorbar(AOM_P["ln(c/c0)"],AOM_P["ln(d/d0)"],xerr=AOM_P["lncse"],yerr=AOM_P["lndse"], markersize=12,label=r'S-AOM (Liu et al.)', fmt='s', 
+        markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+set_axis(ax_bulk0,r'ln$\frac{\delta^{13}{\rm C}+1000}{\delta^{13}{\rm C}_{\rm init}+1000}$',r'ln$\frac{\delta{\rm D}+1000}{\delta{\rm D}_{\rm init}+1000}$')
+ax_bulk0.set_xlim([-0.02,0.06])
+ax_bulk0.set_ylim([-0.02,0.25])
+ax_bulk0.xaxis.set_minor_locator(MultipleLocator(0.004))
+ax_bulk0.yaxis.set_minor_locator(MultipleLocator(0.01))
+ax_bulk0.legend(fontsize=16)
+
+fig_clump0,ax_clump0=plt.subplots(figsize=(12,12))
+ax_clump0.plot(normCD[0,:],normDD[0,:], linewidth=2.5, color="black", linestyle="-.", alpha=1.0, label="Model, R1="+str(rev1_list[0])+", R2="+str(rev2_list[0])+", R3="+str(rev3_list[0]),zorder=1)
+ax_clump0.plot(normCD[1,:],normDD[1,:], linewidth=2.5, linestyle=":", color="purple", alpha=1.0,label="Model, R1="+str(rev1_list[1])+", R2="+str(rev2_list[1])+", R3="+str(rev3_list[1]),zorder=1)
+ax_clump0.plot(normCD[2,:],normDD[2,:], linewidth=2.5, linestyle="--", color="blue", alpha=1.0,label="Model, R1="+str(rev1_list[2])+", R2="+str(rev2_list[2])+", R3="+str(rev3_list[2]),zorder=1)
+ax_clump0.plot(normCD[3,:],normDD[3,:], linewidth=2.5, linestyle=(5,(10,3)), color="orange", alpha=1.0, label="Model, R1="+str(rev1_list[3])+", R2="+str(rev2_list[3])+", R3="+str(rev3_list[3]), zorder=1)
+ax_clump0.plot(normCD[4,:],normDD[4,:], linewidth=2.5, color="red", alpha=1.0, label="Model, R1="+str(rev1_list[4])+", R2="+str(rev2_list[4])+", R3="+str(rev3_list[4]), zorder=1)
+ax_clump0.errorbar(ANME2d["DeltaCD"],ANME2d["DeltaDD"],xerr=None,yerr=None, markersize=12,label=r'N-AOM (this study)', fmt='o', 
+        markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+ax_clump0.errorbar(AOM_P["DeltaCD"],AOM_P["DeltaDD"],xerr=None,yerr=None, markersize=12,label=r'S-AOM (Liu et al.)', fmt='s', 
+        markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+ax_clump0.errorbar(AeOM_P["DeltaCD"],AeOM_P["DeltaDD"],xerr=None,yerr=None, markersize=12,label=r'AeOM', fmt='o', 
+        markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+set_axis(ax_clump0,r'$\Delta \Delta^{13}$CH$_3$D'+'(\u2030)',r'$\Delta \Delta^{12}$CH$_2$D$_2$'+'(\u2030)')
+ax_clump0.set_xlim([-15,20])
+ax_clump0.set_ylim([-60,60])
+ax_clump0.xaxis.set_minor_locator(MultipleLocator(2))
+ax_clump0.yaxis.set_minor_locator(MultipleLocator(4))
+ax_clump0.legend(fontsize=16)
+
 fig_bulk,ax_bulk=plt.subplots(figsize=(12,12))
 ax_bulk.plot(d13C[0,:],dD[0,:], linewidth=2.5, color="black", linestyle="-.", alpha=1.0, label="Model, R1="+str(rev1_list[0])+", R2="+str(rev2_list[0])+", R3="+str(rev3_list[0]),zorder=1)
 ax_bulk.plot(d13C[1,:],dD[1,:], linewidth=2.5, linestyle=":", color="purple", alpha=1.0,label="Model, R1="+str(rev1_list[1])+", R2="+str(rev2_list[1])+", R3="+str(rev3_list[1]),zorder=1)
@@ -451,24 +504,26 @@ ax_bulk.plot(d13C[3,:],dD[3,:], linewidth=2.5, linestyle=(5,(10,3)), color="oran
 ax_bulk.plot(d13C[4,:],dD[4,:], linewidth=2.5, color="red", alpha=1.0, label="Model, R1="+str(rev1_list[4])+", R2="+str(rev2_list[4])+", R3="+str(rev3_list[4]), zorder=1)
 
 
-ax_bulk.errorbar(ANME2d["d13C"],ANME2d["dD"],xerr=ANME2d["cse"],yerr=ANME2d["dse"], markersize=18,label=r'N-AOM (this study)', fmt='o', 
+ax_bulk.errorbar(ANME2d["d13C"],ANME2d["dD"],xerr=ANME2d["cse"],yerr=ANME2d["dse"], markersize=12,label=r'N-AOM (this study)', fmt='o', 
         markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-ax_bulk.errorbar(AOM_P["d13C"],AOM_P["dD"],xerr=AOM_P["cse"],yerr=AOM_P["dse"], markersize=14,label=r'S-AOM (Liu et al.)', fmt='s', 
+ax_bulk.errorbar(AOM_P["d13C"],AOM_P["dD"],xerr=AOM_P["cse"],yerr=AOM_P["dse"], markersize=12,label=r'S-AOM (High sulfate)', fmt='s', 
         markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-ax_bulk.errorbar(AOM_wegener["d13C"],AOM_wegener["dD"],xerr=AOM_wegener["cse"],yerr=AOM_wegener["dse"], markersize=14, label=r"S-AOM (Wegener et al.)", 
-        fmt='o', markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-ax_bulk.errorbar(AOM_ono["d13C"],AOM_ono["dD"],xerr=AOM_ono["cse"],yerr=AOM_ono["dse"], markersize=14, label=r"S-AOM (Ono et al.)",
-                 fmt='^', markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-ax_bulk.errorbar(NC10["d13C"], NC10["dD"],xerr=NC10["cse"],yerr=NC10["dse"], markersize=18,label=r'NC10', fmt='o', 
-        markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-ax_bulk.errorbar(AeOM_P["d13C"], AeOM_P["dD"],xerr=AeOM_P["cse"],yerr=AeOM_P["dse"], markersize=18,label=r'AeOM', fmt='o', 
-        markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+ax_bulk.errorbar(AOM_P_LS["d13C"],AOM_P_LS["dD"],xerr=AOM_P_LS["cse"],yerr=AOM_P_LS["dse"], markersize=12,label=r'S-AOM (Low sulfate)', fmt='s', 
+        markerfacecolor='gray', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+# ax_bulk.errorbar(AOM_wegener["d13C"],AOM_wegener["dD"],xerr=AOM_wegener["cse"],yerr=AOM_wegener["dse"], markersize=14, label=r"S-AOM (Wegener et al.)", 
+#         fmt='o', markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+# ax_bulk.errorbar(AOM_ono["d13C"],AOM_ono["dD"],xerr=AOM_ono["cse"],yerr=AOM_ono["dse"], markersize=14, label=r"S-AOM (Ono et al.)",
+#                  fmt='^', markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+# ax_bulk.errorbar(NC10["d13C"], NC10["dD"],xerr=NC10["cse"],yerr=NC10["dse"], markersize=18,label=r'NC10', fmt='o', 
+#         markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+# ax_bulk.errorbar(AeOM_P["d13C"], AeOM_P["dD"],xerr=AeOM_P["cse"],yerr=AeOM_P["dse"], markersize=12,label=r'AeOM', fmt='o', 
+#         markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
 set_axis(ax_bulk,'$\delta^{13}$C (\u2030)','$\delta$D (\u2030)')
-ax_bulk.set_xlim([-60,20])
-ax_bulk.set_ylim([-220,200])
-ax_bulk.xaxis.set_minor_locator(MultipleLocator(2))
-ax_bulk.yaxis.set_minor_locator(MultipleLocator(20))
-ax_bulk.legend(fontsize=18)
+ax_bulk.set_xlim([-60,10])
+ax_bulk.set_ylim([-180,150])
+ax_bulk.xaxis.set_minor_locator(MultipleLocator(4))
+ax_bulk.yaxis.set_minor_locator(MultipleLocator(10))
+ax_bulk.legend(fontsize=15)
 
 fig_clump,ax_clump=plt.subplots(figsize=(12,12))
 ax_clump.plot(equib['D13CH3D'],equib['D12CH2D2'],'-k', label = 'Equilibrium', linewidth = 2.5, markersize = 15)
@@ -482,13 +537,15 @@ ax_clump.plot(D13CH3D[1,:],D12CH2D2[1,:], linewidth=2.5, linestyle=":", color="p
 ax_clump.plot(D13CH3D[2,:],D12CH2D2[2,:], linewidth=2.5, linestyle="--", color="blue", alpha=1.0,zorder=1)
 ax_clump.plot(D13CH3D[3,:],D12CH2D2[3,:], linewidth=2.5, linestyle=(5,(10,3)),color="orange", alpha=1.0,zorder=1)
 ax_clump.plot(D13CH3D[4,:],D12CH2D2[4,:], linewidth=2.5, color="red", alpha=1.0,zorder=1)
-ax_clump.errorbar(ANME2d["D13CH3D"],ANME2d["D12CH2D2"],xerr=ANME2d["cdse"],yerr=ANME2d["ddse"], markersize=18,label=r'Nitrate-dependent AOM (this study)', fmt='o', 
+ax_clump.errorbar(ANME2d["D13CH3D"],ANME2d["D12CH2D2"],xerr=ANME2d["cdse"],yerr=ANME2d["ddse"], markersize=12,label=r'N-AOM (this study)', fmt='o', 
         markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-ax_clump.errorbar(AOM_P["D13CH3D"],AOM_P["D12CH2D2"],xerr=AOM_P["cdse"],yerr=AOM_P["ddse"], markersize=14,label=r'Sulfate-dependent AOM', fmt='s', 
+ax_clump.errorbar(AOM_P["D13CH3D"],AOM_P["D12CH2D2"],xerr=AOM_P["cdse"],yerr=AOM_P["ddse"], markersize=12,label=r'S-AOM (High sulfate)', fmt='s', 
         markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-ax_clump.errorbar(NC10["D13CH3D"], NC10["D12CH2D2"],xerr=NC10["cdse"],yerr=NC10["ddse"], markersize=18,label=r'NC10 (this study)', fmt='o', 
-        markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
-ax_clump.errorbar(AeOM_P["D13CH3D"], AeOM_P["D12CH2D2"],xerr=AeOM_P["cdse"],yerr=AeOM_P["ddse"], markersize=18,label=r'AeOM', fmt='o', 
+ax_clump.errorbar(AOM_P_LS["D13CH3D"],AOM_P_LS["D12CH2D2"],xerr=AOM_P_LS["cdse"],yerr=AOM_P_LS["ddse"], markersize=12,label=r'S-AOM (Low sulfate)', fmt='s', 
+        markerfacecolor='gray', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+# ax_clump.errorbar(NC10["D13CH3D"], NC10["D12CH2D2"],xerr=NC10["cdse"],yerr=NC10["ddse"], markersize=18,label=r'NC10 (this study)', fmt='o', 
+#         markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+ax_clump.errorbar(AeOM_P["D13CH3D"], AeOM_P["D12CH2D2"],xerr=AeOM_P["cdse"],yerr=AeOM_P["ddse"], markersize=12,label=r'AeOM', fmt='o', 
         markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-2)
 set_axis(ax_clump,'$\Delta^{13}$CH$_3$D (\u2030)','$\Delta^{12}$CH$_2$D$_2$ (\u2030)')
 ax_clump.xaxis.set_minor_locator(MultipleLocator(2))
@@ -499,41 +556,41 @@ fig_f1,ax_f1=plt.subplots(figsize=(12,6))
 fig_f2,ax_f2=plt.subplots(figsize=(12,6))
 fig_f3,ax_f3=plt.subplots(figsize=(12,6))
 fig_f4,ax_f4=plt.subplots(figsize=(12,6))
-def plotf(x,n,ne,ax):
-    ax.plot(fCH4[0,:],x[0,:],linewidth=2.5,linestyle="-.", color="black")
-    ax.plot(fCH4[1,:],x[1,:],linewidth=2.5,linestyle=":",color="purple")
-    ax.plot(fCH4[2,:],x[2,:],linewidth=2.5,linestyle="--",color="blue")
-    ax.plot(fCH4[3,:],x[3,:],linewidth=2.5,linestyle=(5,(10,3)),color="orange")
-    ax.plot(fCH4[4,:],x[4,:],linewidth=2.5,color="red")
-    ax.errorbar(ANME2d["f"],ANME2d[n],xerr=ANME2d["fse"],yerr=ANME2d[ne],markerfacecolor="yellow",
+def plotf_norm(x,n,ne,ax):
+    ax.plot(-np.log(fCH4[0,:]),x[0,:],linewidth=2.5,linestyle="-.", color="black")
+    ax.plot(-np.log(fCH4[1,:]),x[1,:],linewidth=2.5,linestyle=":",color="purple")
+    ax.plot(-np.log(fCH4[2,:]),x[2,:],linewidth=2.5,linestyle="--",color="blue")
+    ax.plot(-np.log(fCH4[3,:]),x[3,:],linewidth=2.5,linestyle=(5,(10,3)),color="orange")
+    ax.plot(-np.log(fCH4[4,:]),x[4,:],linewidth=2.5,color="red")
+    ax.errorbar(ANME2d["lnf"],ANME2d[n],xerr=ANME2d["fse"],yerr=ANME2d[ne],markerfacecolor="yellow",
                markersize=18,fmt="o",markeredgecolor="black",markeredgewidth=2.5)
-    ax.errorbar(AOM_P["f"],AOM_P[n],xerr=AOM_P["fse"],yerr=AOM_P[ne],markerfacecolor="white",
+    ax.errorbar(AOM_P["lnf"],AOM_P[n],xerr=AOM_P["fse"],yerr=AOM_P[ne],markerfacecolor="white",
                markersize=14,fmt="s",markeredgecolor="black",markeredgewidth=2.5)
-    ax.errorbar(AOM_wegener["f"],AOM_wegener[n],xerr=AOM_wegener["fse"],yerr=AOM_wegener[ne],markerfacecolor="white",
+    ax.errorbar(AOM_wegener["lnf"],AOM_wegener[n],xerr=AOM_wegener["fse"],yerr=AOM_wegener[ne],markerfacecolor="white",
                markersize=14,fmt="o",markeredgecolor="black",markeredgewidth=2.5)
-    ax.errorbar(AOM_ono["f"],AOM_ono[n],xerr=AOM_ono["fse"],yerr=AOM_ono[ne],markerfacecolor="white",
+    ax.errorbar(AOM_ono["lnf"],AOM_ono[n],xerr=AOM_ono["fse"],yerr=AOM_ono[ne],markerfacecolor="white",
                markersize=14,fmt="^",markeredgecolor="black",markeredgewidth=2.5)
     ax.invert_xaxis()
 
-plotf(d13C,"d13C","cse",ax_f1)
-set_axis(ax_f1,r"$f$",'$\delta^{13}$C (\u2030)')
-ax_f1.set_xlim([1.04,-0.04])
+plotf_norm(normC,"ln(c/c0)","lncse",ax_f1)
+set_axis(ax_f1,r"-ln$f$",r'ln$\frac{\delta^{13}{\rm C}+1000}{\delta^{13}{\rm C}_{\rm init}+1000}$')
+ax_f1.set_xlim([-0.04,1.04])
 ax_f1.xaxis.set_minor_locator(MultipleLocator(0.1))
-ax_f1.yaxis.set_minor_locator(MultipleLocator(4))
-plotf(dD,"dD","dse",ax_f2)
-set_axis(ax_f2,r"$f$",'$\delta$D (\u2030)')
-ax_f2.set_ylim([-220,350])
-ax_f2.set_xlim([1.04,-0.04])
+ax_f1.yaxis.set_minor_locator(MultipleLocator(0.01))
+plotf_norm(normD,"ln(d/d0)","lndse",ax_f2)
+set_axis(ax_f2,r"-ln$f$",r'ln$\frac{\delta{\rm D}+1000}{\delta{\rm D}_{\rm init}+1000}$')
+# ax_f2.set_ylim([-220,350])
+ax_f2.set_xlim([-0.04,1.04])
 ax_f2.xaxis.set_minor_locator(MultipleLocator(0.1))
-ax_f2.yaxis.set_minor_locator(MultipleLocator(40))
-plotf(D13CH3D,"D13CH3D","cdse",ax_f3)
-set_axis(ax_f3,r"$f$",'$\Delta^{13}$CH$_3$D (\u2030)')
-ax_f3.set_xlim([1.04,-0.04])
+ax_f2.yaxis.set_minor_locator(MultipleLocator(0.02))
+plotf_norm(normCD,"DeltaCD","se",ax_f3)
+set_axis(ax_f3,r"-ln$f$",r'$\Delta \Delta^{13}$CH$_3$D'+'(\u2030)')
+ax_f3.set_xlim([-0.04,1.04])
 ax_f3.xaxis.set_minor_locator(MultipleLocator(0.1))
 ax_f3.yaxis.set_minor_locator(MultipleLocator(2))
-plotf(D12CH2D2,"D12CH2D2","ddse",ax_f4)
-set_axis(ax_f4,r"$f$",'$\Delta^{12}$CH$_2$D$_2$ (\u2030)')
-ax_f4.set_xlim([1.04,-0.04])
+plotf_norm(normDD,"DeltaDD","se",ax_f4)
+set_axis(ax_f4,r"-ln$f$",r'$\Delta \Delta^{12}$CH$_2$D$_2$'+'(\u2030)')
+ax_f4.set_xlim([-0.04,1.04])
 ax_f4.xaxis.set_minor_locator(MultipleLocator(0.1))
 ax_f4.yaxis.set_minor_locator(MultipleLocator(10))
 
