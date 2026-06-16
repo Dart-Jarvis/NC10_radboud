@@ -1,0 +1,4 @@
+series,label,rev1,rev2,rev3,sigma_rev1,sigma_rev2,sigma_rev3,gammaCDff2,gammaDDff2,sigma_gammaCDff2,sigma_gammaDDff2,model_py,data_csv,tmax,ngrid_f,ode_method,ode_atol,ode_rtol,f_min,f_source,f_stop,use_event_stop
+ANME2d,3,0.32,0.97,0.86,0.04,0.02,0.04,0.979,0.92,0.005,0.005,multistep_model_final.py,isotope_data.csv,500.0,120,LSODA,1e-09,1e-06,0.3,manual,0.295,True
+AOM_P,AOM_P,0.78,0.54,0.03,0.04,0.04,0.02,0.979,0.92,0.005,0.005,multistep_model_final.py,isotope_data.csv,500.0,120,LSODA,1e-09,1e-06,0.1,manual,0.095,True
+AOM_LS,AOM_P_LS,0.9,0.96,0.96,0.03,0.03,0.03,0.979,0.92,0.005,0.005,multistep_model_final.py,isotope_data.csv,500.0,120,LSODA,1e-09,1e-06,0.5,manual,0.495,True

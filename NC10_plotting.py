@@ -39,19 +39,20 @@ AeOM_P2=data[data['label']=='P2'] # wang et al., 2016
 AOM_P=data[data['label']=='AOM_P'] # Previous data from Liu et al., 2023, Kinetic Sulfate AOM
 AOM_P_LS=data[data['label']=='AOM_P_LS'] # AOM data from Liu et al., 2023, equilibrium S-AOM
 AOM_ono=data[data['label']=='AOM_ono'] # AOM data from Ono et al., 2021 (high sulfate series)
-AeOM_m=AeOM_P[AeOM_P['f']>=0.4]
+AeOM_m=AeOM_P[AeOM_P['f']>=0.1]
 AOM_wegener=data[data['label']=='AOM_Wegener']
+AOM_wegener_LS=data[data['label']=='AOM_Wegener_LS']
 
 # Create a mask to determine which series of data to lot
 mask={
-    "save_fig":0,
+    "save_fig":1,
     "T0": 1,
     "NC10":1,
     "NC10+ANME":1,
     "ANME2d":1,
-    "Oct":0,
-    "BES":0,
-    "previous data":1,
+    "Oct":1,
+    "BES":1,
+    "previous data":0,
 }
 
 fig1,ax1=plt.subplots(figsize=(12,12))
@@ -63,38 +64,40 @@ for i in range(len(equib)):
 
 def quick_plot(ax,x,y,xerr,yerr,msk):
     if msk["T0"]==1:
-        ax.errorbar(T0[x],T0[y],xerr=T0[xerr],yerr=T0[yerr], markersize=35,label=r'Tank gas', fmt='*', 
-                    markerfacecolor='purple', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=4)
+        ax.errorbar(T0[x],T0[y],xerr=T0[xerr],yerr=T0[yerr], markersize=32,label=r'Tank gas', fmt='*', 
+                    markerfacecolor='None', markeredgecolor='purple',markeredgewidth=3.5, ecolor='purple', elinewidth=2.5, zorder=4)
     if msk["NC10"]==1:
         ax.errorbar(NC10[x],NC10[y],xerr=NC10[xerr],yerr=NC10[yerr], markersize=18,label=r'NC10', fmt='o', 
-                    markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
+                    markerfacecolor='None', markeredgecolor='red',markeredgewidth=3.5, ecolor='red', elinewidth=2.5, zorder=3)
     if msk["NC10+ANME"]==1:
         ax.errorbar(NC10_ANME[x],NC10_ANME[y],xerr=NC10_ANME[xerr],yerr=NC10_ANME[yerr], markersize=18,label=r'NC10+ANME', fmt='^', 
-                    markerfacecolor='blue', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
+                    markerfacecolor='None', markeredgecolor='blue',markeredgewidth=3.5, ecolor='blue', elinewidth=2.5, zorder=3)
     if msk["ANME2d"]==1:
         ax.errorbar(ANME2d[x],ANME2d[y],xerr=ANME2d[xerr],yerr=ANME2d[yerr], markersize=18,label=r'ANME', fmt='s', 
-                    markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
+                    markerfacecolor='None', markeredgecolor='black',markeredgewidth=3.5, ecolor='black', elinewidth=2.5, zorder=3)
     if msk["Oct"]==1:
         ax.errorbar(Oct[x],Oct[y],xerr=Oct[xerr],yerr=Oct[yerr], markersize=18,label=r'NC10+ANME+Oct (pMMO inhibited)', fmt='D', 
-                    markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+                    markerfacecolor='None', markeredgecolor='black',markeredgewidth=3.5, ecolor='black', elinewidth=2.5, zorder=2)
     if msk["BES"]==1:
         ax.errorbar(BES[x],BES[y],xerr=BES[xerr],yerr=BES[yerr], markersize=18,label=r'NC10+ANME+BES (mcr inhibited)', fmt='v', 
-                    markerfacecolor='cyan', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+                    markerfacecolor='None', markeredgecolor='red',markeredgewidth=3.5, ecolor='red', elinewidth=2.5, zorder=2)
     if msk["previous data"]==1:
-        ax.errorbar(AeOM_m[x],AeOM_m[y],xerr=AeOM_m[xerr],yerr=AeOM_m[yerr], markersize=14,label=r'AeOM (previous study)', fmt='o', 
-                    markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+        ax.errorbar(AeOM_m[x],AeOM_m[y],xerr=AeOM_m[xerr],yerr=AeOM_m[yerr], markersize=14,label=r'AeOM', fmt='o', 
+                    markerfacecolor='None', markeredgecolor='gray',markeredgewidth=3.5, ecolor='gray', elinewidth=2.5, zorder=-1)
         ax.errorbar(AeOM_P1[x],AeOM_P1[y],xerr=AeOM_P1[xerr],yerr=AeOM_P1[yerr], markersize=14, fmt='o', 
-                    markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)  
+                    markerfacecolor='None', markeredgecolor='gray',markeredgewidth=3.5, ecolor='gray', elinewidth=2.5, zorder=-1)  
         ax.errorbar(AeOM_P2[x],AeOM_P2[y],xerr=AeOM_P2[xerr],yerr=AeOM_P2[yerr], markersize=14, fmt='o', 
-                    markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)          
-        ax.errorbar(AOM_P[x],AOM_P[y],xerr=AOM_P[xerr],yerr=AOM_P[yerr], markersize=14,label=r'S-AOM (previous study)', fmt='s', 
-                    markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-        # ax.errorbar(AOM_P_LS[x],AOM_P_LS[y],xerr=AOM_P_LS[xerr],yerr=AOM_P_LS[yerr], markersize=14, fmt='s', 
-        #         markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+                    markerfacecolor='None', markeredgecolor='gray',markeredgewidth=3.5, ecolor='gray', elinewidth=2.5, zorder=-1)          
+        ax.errorbar(AOM_P[x],AOM_P[y],xerr=AOM_P[xerr],yerr=AOM_P[yerr], markersize=14,label=r'S-AOM (high sulfate)', fmt='s', 
+                    markerfacecolor='None', markeredgecolor='gray',markeredgewidth=3.5, ecolor='gray', elinewidth=2.5, zorder=-1)
+        ax.errorbar(AOM_P_LS[x],AOM_P_LS[y],xerr=AOM_P_LS[xerr],yerr=AOM_P_LS[yerr], markersize=14, fmt='^', label=r"S-AOM (low sulfate)",
+                markerfacecolor='None', markeredgecolor='gray',markeredgewidth=3.5, ecolor='gray', elinewidth=2.5, zorder=-1)
         ax.errorbar(AOM_ono[x],AOM_ono[y],xerr=AOM_ono[xerr],yerr=AOM_ono[yerr], markersize=14, fmt='s', 
-                markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+                markerfacecolor='None', markeredgecolor='gray',markeredgewidth=3.5, ecolor='gray', elinewidth=2.5, zorder=-1)
         ax.errorbar(AOM_wegener[x],AOM_wegener[y],xerr=AOM_wegener[xerr],yerr=AOM_wegener[yerr], markersize=14, fmt='s', 
-                markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
+                markerfacecolor='None', markeredgecolor='gray',markeredgewidth=3.5, ecolor='gray', elinewidth=2.5, zorder=-1)
+        ax.errorbar(AOM_wegener_LS[x],AOM_wegener_LS[y],xerr=AOM_wegener_LS[xerr],yerr=AOM_wegener_LS[yerr], markersize=14, fmt='^', 
+                markerfacecolor='None', markeredgecolor='gray',markeredgewidth=3.5, ecolor='gray', elinewidth=2.5, zorder=-1)
 
 def set_axis(ax,xlabel,ylabel):
     ax.set_ylabel(ylabel, fontdict = font_labels)
@@ -106,16 +109,38 @@ def set_axis(ax,xlabel,ylabel):
 quick_plot(ax1,"D13CH3D","D12CH2D2","cdse","ddse",mask)
 quick_plot(ax2,"d13C","dD","cse","dse",mask)
 
-ax1.legend(fontsize=16,loc="upper left")
+# ax1.legend(fontsize=24,loc="upper left")
 set_axis(ax1,'$\Delta^{13}$CH$_3$D (\u2030)','$\Delta^{12}$CH$_2$D$_2$ (\u2030)')
-ax1.set_ylim([-23,50])
-ax1.set_xlim([-4,16])
-ax1.yaxis.set_minor_locator(MultipleLocator(2))
-ax1.xaxis.set_minor_locator(MultipleLocator(1))
+# ax1.set_ylim([-23,50])
+# ax1.set_xlim([-4,16])
+ax1.yaxis.set_minor_locator(MultipleLocator(1))
+ax1.xaxis.set_minor_locator(MultipleLocator(0.4))
 
 set_axis(ax2,'$\delta^{13}$C (\u2030)','$\delta$D (\u2030)')
-ax2.yaxis.set_minor_locator(MultipleLocator(20))
-ax2.xaxis.set_minor_locator(MultipleLocator(2))
+ax2.yaxis.set_minor_locator(MultipleLocator(4))
+ax2.xaxis.set_minor_locator(MultipleLocator(1))
+
+# Plot the data in this study together with data from previous studies
+comp_b,ax_comp_b=plt.subplots(figsize=(12,12))
+comp_c,ax_comp_c=plt.subplots(figsize=(12,12))
+mask["previous data"]=1
+
+ax_comp_c.plot(equib['D13CH3D'],equib['D12CH2D2'],'-k', label = 'Equilibrium', linewidth = 2.5, markersize = 15)
+for i in range(len(equib)):
+    if equib['p'].iloc[i]==1:
+        ax_comp_c.scatter(equib['D13CH3D'].iloc[i], equib['D12CH2D2'].iloc[i],color='black',s=60)
+quick_plot(ax_comp_c,"D13CH3D","D12CH2D2","cdse","ddse",mask)
+quick_plot(ax_comp_b,"d13C","dD","cse","dse",mask)
+
+# ax1.legend(fontsize=24,loc="upper left")
+set_axis(ax_comp_c,'$\Delta^{13}$CH$_3$D (\u2030)','$\Delta^{12}$CH$_2$D$_2$ (\u2030)')
+ax_comp_c.yaxis.set_minor_locator(MultipleLocator(4))
+ax_comp_c.xaxis.set_minor_locator(MultipleLocator(2))
+
+set_axis(ax_comp_b,'$\delta^{13}$C (\u2030)','$\delta$D (\u2030)')
+ax_comp_b.yaxis.set_minor_locator(MultipleLocator(20))
+ax_comp_b.xaxis.set_minor_locator(MultipleLocator(4))
+ax_comp_b.legend(fontsize=24)
 
 # The compilation of isotope fractionation factors
 alphas={
@@ -125,12 +150,12 @@ alphas={
     "Oct": alpha_raw[alpha_raw['Label']=="pMMO_inhibit"],
     "BES": alpha_raw[alpha_raw['Label']=="mcr_inhibit"],
     "S-AOM": alpha_raw[alpha_raw['Label']=="S-AOM"],
-    "pMMO_P": alpha_raw[alpha_raw['Label']=="pMMO_P"],
+    "AeOM": alpha_raw[alpha_raw['Label']=="pMMO_P"],
     "OH": alpha_raw[alpha_raw['Label']=="OH"],
     "Cl": alpha_raw[alpha_raw['Label']=="Cl"],
     "red_mass": alpha_raw[alpha_raw['Label']=="red_mass"],
     "Ab initio (sMMO)": alpha_raw[alpha_raw['Label']=="sMMO"],
-    "Ab initio (MCR INT)":alpha_raw[alpha_raw['Label']=="MCR (with INT)"],
+    "Ab initio (MCR)":alpha_raw[alpha_raw['Label']=="MCR (with INT)"],
     "Ab initio (MCR no INT)":alpha_raw[alpha_raw['Label']=="MCR (no INT)"]
 }
 
@@ -175,14 +200,14 @@ maskf={
     "NC10+ANME":0,
     "ANME2d":0,
     "Oct":0,
-    "BES":0,
+    "BES":1,
     "S-AOM":0,
-    "pMMO_P":1,
+    "AeOM":1,
     "OH":0,
     "Cl":0,
     "red_mass":0,
     "Ab initio (sMMO)": 1,
-    "Ab initio (MCR INT)": 0,
+    "Ab initio (MCR)": 0,
     "Ab initio (MCR no INT)": 0
 }
 
@@ -243,37 +268,67 @@ axddf.legend(fontsize=15, bbox_to_anchor=(1.04,0.8))
 
 # Plot the fractionation factors
 series=[r"$^{\rm 13C}\alpha$", r"$^{\rm D}\alpha$", r"$^{\rm 13CD}\alpha$", r"$^{\rm D2}\alpha$", r"$^{\rm 13CD}\gamma$", r"$^{\rm D2}\gamma$"]
+# series=[r"$^{\rm 13C}\alpha$", r"$^{\rm D}\alpha$", r"$^{\rm 13CD}\alpha$", r"$^{\rm DD}\alpha$"]
 color_dict={
-    "NC10": ["orange","o",2],
+    "NC10": ["red","o",2],
     "NC10+ANME":["blue","^",2],
-    "ANME2d": ["yellow","s",2],
-    "Oct":["red","D",1],
-    "BES":["cyan","v",1],
-    "S-AOM":["white","s",-1],
-    "pMMO_P":["white","o",-1],
+    "ANME2d": ["black","s",2],
+    "Oct":["black","v",1],
+    "BES":["red","v",1],
+    "S-AOM":["gray","s",-1],
+    "AeOM":["gray","o",-1],
     "OH":["gray","D",-2],
     "Cl":["gray","^",-2],
     "red_mass":["gray","v",-1],
-    "Ab initio (sMMO)":["blue","o",2],
-    "Ab initio (MCR INT)":["red","s",2],
-    "Ab initio (MCR no INT)":["orange","s",2]
+    "Ab initio (sMMO)":["red","^",2],
+    "Ab initio (MCR)":["black","o",2],
+    "Ab initio (MCR no INT)":["black","D",2]
 }
-fig3,ax3=plt.subplots(figsize=(8,8))
 
+fig3,ax3=plt.subplots(figsize=(8,8))
 for key in alphas.keys():
     temp=alphas[key].to_numpy()
     if maskf[key]!=0:
         for i in range(len(temp)):
             if i==0:
-                ax3.scatter(series,temp[i,1:13:2], c=color_dict[key][0], marker=color_dict[key][1], s=120, edgecolors='black',label=key, zorder=color_dict[key][2])
+                ax3.scatter(series,temp[i,1:13:2], c="None", marker=color_dict[key][1], s=120, edgecolors=color_dict[key][0],linewidths=2.5,label=key, zorder=color_dict[key][2])
             else:
-                ax3.scatter(series,temp[i,1:13:2], c=color_dict[key][0], marker=color_dict[key][1], edgecolors='black', s=120, zorder=color_dict[key][2])
+                ax3.scatter(series,temp[i,1:13:2], c="None", marker=color_dict[key][1], edgecolors=color_dict[key][0], linewidths=2.5, s=120, zorder=color_dict[key][2])
 
 
 ax3.legend(fontsize=18, bbox_to_anchor=(1.04,0.9))
 ax3.tick_params(which='major',direction='out', top=True, right=True, length=8, width=2.5, labelsize=24)
 ax3.tick_params(which='minor',direction='out', top=True, right=True, length=4, width=2.0, labelsize=24)
 ax3.yaxis.set_minor_locator(MultipleLocator(0.02))
+
+maskf={
+    "NC10": 0,
+    "NC10+ANME":1,
+    "ANME2d":1,
+    "Oct":1,
+    "BES":0,
+    "S-AOM":1,
+    "AeOM":0,
+    "OH":0,
+    "Cl":0,
+    "red_mass":0,
+    "Ab initio (sMMO)": 0,
+    "Ab initio (MCR)": 1,
+    "Ab initio (MCR no INT)": 0
+}
+fig4,ax4=plt.subplots(figsize=(8,8))
+for key in alphas.keys():
+    temp=alphas[key].to_numpy()
+    if maskf[key]!=0:
+        for i in range(len(temp)):
+            if i==0:
+                ax4.scatter(series,temp[i,1:13:2], c="None", marker=color_dict[key][1], s=120, edgecolors=color_dict[key][0],linewidths=2.5,label=key, zorder=color_dict[key][2])
+            else:
+                ax4.scatter(series,temp[i,1:13:2], c="None", marker=color_dict[key][1], edgecolors=color_dict[key][0], linewidths=2.5, s=120, zorder=color_dict[key][2])
+ax4.legend(fontsize=18, bbox_to_anchor=(1.04,0.9))
+ax4.tick_params(which='major',direction='out', top=True, right=True, length=8, width=2.5, labelsize=24)
+ax4.tick_params(which='minor',direction='out', top=True, right=True, length=4, width=2.0, labelsize=24)
+ax4.yaxis.set_minor_locator(MultipleLocator(0.02))
 
 # With f
 fig5,ax5=plt.subplots(figsize=(12,6))
@@ -368,96 +423,6 @@ set_axis(ax8,r"$f$", r"$\Delta^{12}$CH$_2$D$_2$" + " (\u2030)")
 ax8.set_xlim([1.04,0.32])
 ax8.xaxis.set_minor_locator(MultipleLocator(0.1))
 ax8.yaxis.set_minor_locator(MultipleLocator(2))
-
-# # Plot epsilons
-# def plot_isotope_eps(ax,x,y,xerr,yerr,msk):
-#     if msk["NC10"]==1:
-#         ax.errorbar(NC10[x],NC10[y],xerr=NC10[xerr],yerr=NC10[yerr], markersize=18,label=r'NC10', fmt='o', 
-#                     markerfacecolor='orange', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
-#     if msk["ANME2d"]==1:
-#         ax.errorbar(ANME2d[x],ANME2d[y],xerr=ANME2d[xerr],yerr=ANME2d[yerr], markersize=18,label=r'ANME', fmt='s', 
-#                     markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
-#     if msk["NC10+ANME"]==1:
-#         ax.errorbar(NC10_ANME[x],NC10_ANME[y],xerr=NC10_ANME[xerr],yerr=NC10_ANME[yerr], markersize=18,label=r'NC10+ANME', fmt='^', 
-#                     markerfacecolor='blue', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=3)
-#     if msk["Oct"]==1:
-#         ax.errorbar(Oct[x],Oct[y],xerr=Oct[xerr],yerr=Oct[yerr], markersize=18,label=r'NC10+ANME (pMMO inhibited)', fmt='D', 
-#                     markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
-#     if msk["BES"]==1:
-#         ax.errorbar(BES[x],BES[y],xerr=BES[xerr],yerr=BES[yerr], markersize=18,label=r'NC10+ANME (mcr inhibited)', fmt='v', 
-#                     markerfacecolor='cyan', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
-
-# fig_eps_c_d,ax_eps_c_d=plt.subplots(figsize=(8,8))
-# fig_eps_cd_dd,ax_eps_cd_dd=plt.subplots(figsize=(8,8))
-
-# # Calucate the epsilon ratios in the previous studies for plotting the curves
-# eps_data = pd.read_csv('epsilon.csv')
-# # The compilation of isotope fractionation factors
-# eps={
-#     "NC10": eps_data[eps_data['Label']=="NC10"],
-#     "ANME2d": eps_data[eps_data['Label']=="ANME2d"],
-#     "NC10+ANME": eps_data[eps_data['Label']=="NC10+ANME"],
-#     "Oct": eps_data[eps_data['Label']=="pMMO_inhibit"],
-#     "BES": eps_data[eps_data['Label']=="mcr_inhibit"],
-#     "S-AOM": eps_data[eps_data['Label']=="S-AOM"],
-#     "pMMO_P": eps_data[eps_data['Label']=="pMMO_P"],
-#     "OH": eps_data[eps_data['Label']=="OH"],
-#     "Cl": eps_data[eps_data['Label']=="Cl"],
-#     "red_mass": eps_data[eps_data['Label']=="red_mass"],
-# }
-
-
-        
-# plot_isotope_eps(ax_eps_c_d,"ln(c/c0)","ln(d/d0)","lncse","lndse",maskf)
-# set_axis(ax_eps_c_d, r"ln$\frac{\delta^{13}C+1000}{\delta^{13}C_{ini}+1000}$",r"ln$\frac{\delta D+1000}{\delta D_{ini}+1000}$")
-# ax_eps_c_d.set_xlim([-0.002,0.02])
-# ax_eps_c_d.set_ylim([-0.01,0.18])
-# ax_eps_c_d.xaxis.set_minor_locator(MultipleLocator(0.002))
-# ax_eps_c_d.yaxis.set_minor_locator(MultipleLocator(0.01))
-
-# plot_isotope_eps(ax_eps_cd_dd,"ln(cd/cd0)","ln(dd/dd0)","lncdse","lnddse",maskf)
-# set_axis(ax_eps_cd_dd,r"ln$\frac{\delta^{13}CH_3D+1000}{\delta^{13}CH_3D_{ini}+1000}$",r"ln$\frac{\delta^{12}CH_2D_2+1000}{\delta^{13}CH_2D_{2 ini}+1000}$")
-# ax_eps_cd_dd.set_xlim([-0.01,0.2])
-# ax_eps_cd_dd.xaxis.set_minor_locator(MultipleLocator(0.01))
-# ax_eps_cd_dd.set_ylim([-0.02,0.35])
-# ax_eps_cd_dd.yaxis.set_minor_locator(MultipleLocator(0.02))
-
-# # Calculate the lines
-# mask_eps={
-#     "NC10": [0,"black","--",2],
-#     "NC10+ANME":[0,"black","-",2],
-#     "ANME2d": [0,"black",":",2],
-#     "Oct":[0,"red","--",1],
-#     "BES":[0,"blue","--",1],
-#     "S-AOM":[1,"black","-",-1],
-#     "pMMO_P":[1,"red","--",-1],
-#     "OH":[1,"blue",":",-2],
-#     "Cl":[1,"purple","-.",-2],
-#     "red_mass":[0,"gray","-",-1]
-# }
-# x1=np.arange(0.0,0.021,0.001) # x for C-D plot
-# x2=np.arange(0.0,0.21,0.01) # x for CD-DD plot
-# line_data={}
-# for key in eps.keys():
-#     temp=eps[key].to_numpy()
-#     r_eps=np.zeros((len(temp),2))
-#     l1_eps=np.zeros((len(temp),len(x1)))
-#     l2_eps=np.zeros((len(temp),len(x2)))
-#     if mask_eps[key][0]==1:
-#         for i in range(len(temp)):
-#             r_eps[i,0]=temp[i,3]/temp[i,1]
-#             r_eps[i,1]=temp[i,7]/temp[i,5]
-#             l1_eps[i,:]=r_eps[i,0]*x1
-#             l2_eps[i,:]=r_eps[i,1]*x2
-#             if i==0:
-#                 ax_eps_c_d.plot(x1,l1_eps[i,:],color=mask_eps[key][1], linestyle=mask_eps[key][2],zorder=mask_eps[key][3],linewidth=2.0, label=key)
-#                 ax_eps_cd_dd.plot(x2,l2_eps[i,:],color=mask_eps[key][1], linestyle=mask_eps[key][2],zorder=mask_eps[key][3],linewidth=2.0, label=key)
-#             else:
-#                 ax_eps_c_d.plot(x1,l1_eps[i,:],color=mask_eps[key][1], linestyle=mask_eps[key][2],zorder=mask_eps[key][3],linewidth=2.0)
-#                 ax_eps_cd_dd.plot(x2,l2_eps[i,:],color=mask_eps[key][1], linestyle=mask_eps[key][2],zorder=mask_eps[key][3],linewidth=2.0)
-
-
-# ax_eps_cd_dd.legend(fontsize=18, bbox_to_anchor=(1.04,0.9))
 
 # Plot the methane oxidation rates with different experimental conditions
 raw_rate=pd.read_csv("methanotrophy_rate.csv")
@@ -563,17 +528,21 @@ ax_oct.set_xlim([-1,16])
 con_bes,ax_bes=plt.subplots(figsize=(12,12))
 plot_con(ax_bes,BES_con,"NC10+ANME+BES")
 
+# =============================================================================
+# End incorporated fig0 uncertainty plotting block
+# =============================================================================
+
 if mask["save_fig"]==1:
     fig1.savefig('clumped_sum.pdf', bbox_inches='tight')
     fig2.savefig('bulk_sum.pdf', bbox_inches='tight')
-    # fig_eps_c_d.savefig("eps_c_d.pdf", bbox_inches='tight')
-    # fig_eps_cd_dd.savefig("eps_cd_dd.pdf", bbox_inches='tight')
+    comp_b.savefig("comp_bulk.pdf", bbox_inches='tight')
+    comp_c.savefig("comp_clumped.pdf", bbox_inches='tight')
     figcf.savefig('frac_c.pdf', bbox_inches='tight')
     figdf.savefig('frac_d.pdf', bbox_inches='tight')
     figcdf.savefig('frac_cd.pdf', bbox_inches='tight')
     figddf.savefig('frac_dd.pdf', bbox_inches='tight')
-    # fig_bulk_model.savefig('bulk_model.pdf', bbox_inches='tight')
-    # fig_clump_model.savefig('clump_model.pdf', bbox_inches='tight')
+    fig3.savefig('ff_pMMO.pdf', bbox_inches='tight')
+    fig4.savefig('ff_mcr.pdf', bbox_inches='tight')
     fig5.savefig("d13C_f.pdf", bbox_inches='tight')
     fig6.savefig("dD_f.pdf", bbox_inches='tight')
     fig7.savefig("D13CD_f.pdf", bbox_inches='tight')
@@ -583,3 +552,4 @@ if mask["save_fig"]==1:
     con_nc10_anme.savefig("con_nc10_anme.pdf", bbox_inches='tight')
     con_oct.savefig("con_oct.pdf", bbox_inches='tight')
     con_bes.savefig("con_bes.pdf", bbox_inches='tight')
+

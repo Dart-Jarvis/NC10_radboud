@@ -221,9 +221,9 @@ a13_OH,aH_OH,aCD_OH,aDD_OH=convert_alpha(ts_freq_OH,ch4_freq_OH,kappa_ts_OH, "OH
 print("\n")
 a13_sMMO,aH_sMMO,aCD_sMMO,aDD_sMMO=convert_alpha(ts_freq_sMMO,ch4_freq_sMMO,kappa_ts_sMMO, "sMMO")
 print("\n")
-a13_mcr,aH_mcr,aCD_mcr,aDD_mcr=convert_alpha(ts_freq_mcr,ch4_freq_sMMO,kappa_ts_mcr, "mcr")
+a13_mcr,aH_mcr,aCD_mcr,aDD_mcr=convert_alpha(ts_freq_mcr_full,ch4_freq_sMMO,kappa_ts_mcr_full, "mcr no int")
 print("\n")
-a13_mcr_full,aH_mcr_full,aCD_mcr_full,aDD_mcr_full=convert_alpha(ts_freq_mcr_full,mcr_int_freq,kappa_ts_mcr_full, "mcr-full")
+a13_mcr_full,aH_mcr_full,aCD_mcr_full,aDD_mcr_full=convert_alpha(ts_freq_mcr_full,mcr_int_freq,kappa_ts_mcr_full, "mcr-int")
 print("\n")
 a13_eq_int,aH_eq_int,aCD_eq_int,aDD_eq_int,aHp_eq,aHs_eq,aCDp_eq,aCDs_eq,aDDp_eq,aDDs_eq=convert_alphaeq(ch4_freq_sMMO,mcr_int_freq,"Equilibrium-ch4->int")
 
