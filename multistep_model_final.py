@@ -4,16 +4,16 @@ import numpy as np
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import pandas as pd
-from matplotlib.ticker import MultipleLocator
+from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 
-output=False # True if you want to save the plots as pdf
+output=True # True if you want to save the plots as pdf
 ff="ab initio" # Select the KIEs in the model: 
 model="INT"
-rev1_list=[0.0,0.32,0.55,0.78,0.99] # First-step reversibility list, CH4 <-> CH3-SCoM; each value ranges from 0 to <1
-rev2_list=[0.0,0.97,0.55,0.54,0.99] # Second-step reversibility list, CH3-SCoM <-> CHO-MFR; each value ranges from 0 to <1
-rev3_list=[0.0,0.86,0.8,0.03,0.99] # Third-step reversibility list, CHO-MFR <-> CO2; each value ranges from 0 to <1
+rev1_list=[0.0,0.32,0.55,0.78,0.9] # First-step reversibility list, CH4 <-> CH3-SCoM; each value ranges from 0 to <1
+rev2_list=[0.0,0.97,0.55,0.54,0.96] # Second-step reversibility list, CH3-SCoM <-> CHO-MFR; each value ranges from 0 to <1
+rev3_list=[0.0,0.86,0.6,0.03,0.96] # Third-step reversibility list, CHO-MFR <-> CO2; each value ranges from 0 to <1
 t_lower=0.000 # minimum time for time interval
-time_list=[45.0,72.0,100.0,160.0,3000.0] # Maximum time for time interval, relevant to the final fraction of methane left
+time_list=[35.0,50.0,100.0,200.0,380.0] # Maximum time for time interval, relevant to the final fraction of methane left
 num=100000 # Number of tim steps
 # "experiment": data from Scheller et al., 2013;
 # "Ab initio": ab initio calculation in this study
@@ -441,6 +441,7 @@ AOM_P_LS=data[data['label']=='AOM_P_LS']
 AOM_ono=data[data['label']=='AOM_ono']
 AOM_wegener=data[data['label']=='AOM_Wegener']
 AOM_wegener_LS=data[data['label']=='AOM_Wegener_LS']
+Oct=data[data['label']=='4']
 # Previous AeOM
 AeOM_P=data[data['label']=='P'] # Previous data from Li et al., 2024
 AeOM_P1=data[data['label']=='P1'] # Previous data from Krause et al., 2022
@@ -479,6 +480,12 @@ def normalize_clumped_dat(data): # Get rid of the influence of T0 values
     for i in range(norm.shape[0]):
         norm[i,:]=data[i,:]-data[i,0]
     return norm
+
+def make_label():
+    labellist={}
+    for i in range(len(rev1_list)):
+        labellist[str(i)]=r"R$_1$="+str(rev1_list[i])+r", R$_2$="+str(rev2_list[i])+r", R$_3$="+str(rev3_list[i])
+    return labellist
 
 normC=normalize_dat(d13C)
 normD=normalize_dat(dD)
@@ -537,6 +544,8 @@ ax_bulk.plot(d13C[4,:],dD[4,:], linewidth=2.5, color="red", alpha=1.0, label="Mo
 
 ax_bulk.errorbar(ANME2d["d13C"],ANME2d["dD"],xerr=ANME2d["cse"],yerr=ANME2d["dse"], markersize=16,label=r'N-AOM (this study)', fmt='o', 
         markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+ax_bulk.errorbar(Oct["d13C"],Oct["dD"],xerr=Oct["cse"],yerr=Oct["dse"], markersize=16,label=r'NC10+ANME+Oct', fmt='D', 
+        markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
 ax_bulk.errorbar(AOM_P["d13C"],AOM_P["dD"],xerr=AOM_P["cse"],yerr=AOM_P["dse"], markersize=12,label=r'S-AOM (High sulfate)', fmt='s', 
         markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
 ax_bulk.errorbar(AOM_P_LS["d13C"],AOM_P_LS["dD"],xerr=AOM_P_LS["cse"],yerr=AOM_P_LS["dse"], markersize=12,label=r'S-AOM (Low sulfate, Liu)', fmt='s', 
@@ -572,6 +581,8 @@ ax_clump.plot(D13CH3D[3,:],D12CH2D2[3,:], linewidth=2.5, linestyle=(5,(10,3)),co
 ax_clump.plot(D13CH3D[4,:],D12CH2D2[4,:], linewidth=2.5, color="red", alpha=1.0,zorder=1)
 ax_clump.errorbar(ANME2d["D13CH3D"],ANME2d["D12CH2D2"],xerr=ANME2d["cdse"],yerr=ANME2d["ddse"], markersize=18,label=r'N-AOM (this study)', fmt='o', 
         markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
+ax_clump.errorbar(Oct["D13CH3D"],Oct["D12CH2D2"],xerr=Oct["cdse"],yerr=Oct["ddse"], markersize=18,label=r'NC10+ANME+Oct', fmt='D', 
+        markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
 ax_clump.errorbar(AOM_P["D13CH3D"],AOM_P["D12CH2D2"],xerr=AOM_P["cdse"],yerr=AOM_P["ddse"], markersize=12,label=r'S-AOM (High sulfate)', fmt='s', 
         markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
 ax_clump.errorbar(AOM_P_LS["D13CH3D"],AOM_P_LS["D12CH2D2"],xerr=AOM_P_LS["cdse"],yerr=AOM_P_LS["ddse"], markersize=12,label=r'S-AOM (Low sulfate)', fmt='s', 
@@ -658,48 +669,42 @@ fig_f1,ax_f1=plt.subplots(figsize=(12,6))
 fig_f2,ax_f2=plt.subplots(figsize=(12,6))
 fig_f3,ax_f3=plt.subplots(figsize=(12,6))
 fig_f4,ax_f4=plt.subplots(figsize=(12,6))
+llist=make_label()
 
 def plotf_norm(x,n,ne,ax):
-    ax.plot(-np.log(fCH4[0,:]),x[0,:],linewidth=2.5,linestyle="-.", color="black")
-    ax.plot(-np.log(fCH4[1,:]),x[1,:],linewidth=2.5,linestyle=":",color="purple")
-    ax.plot(-np.log(fCH4[2,:]),x[2,:],linewidth=2.5,linestyle="--",color="blue")
-    ax.plot(-np.log(fCH4[3,:]),x[3,:],linewidth=2.5,linestyle=(5,(10,3)),color="orange")
-    ax.plot(-np.log(fCH4[4,:]),x[4,:],linewidth=2.5,color="red")
-    ax.errorbar(ANME2d["lnf"],ANME2d[n],xerr=ANME2d["fse"],yerr=ANME2d[ne],markerfacecolor="yellow",
-               markersize=18,fmt="o",markeredgecolor="black",markeredgewidth=2.5)
-    ax.errorbar(AOM_P["lnf"],AOM_P[n],xerr=AOM_P["fse"],yerr=AOM_P[ne],markerfacecolor="white",
-               markersize=14,fmt="s",markeredgecolor="black",markeredgewidth=2.5)
-    ax.errorbar(AOM_wegener["lnf"],AOM_wegener[n],xerr=AOM_wegener["fse"],yerr=AOM_wegener[ne],markerfacecolor="white",
-               markersize=14,fmt="^",markeredgecolor="black",markeredgewidth=2.5)
-    ax.errorbar(AOM_ono["lnf"],AOM_ono[n],xerr=AOM_ono["fse"],yerr=AOM_ono[ne],markerfacecolor="white",
-               markersize=14,fmt="v",markeredgecolor="black",markeredgewidth=2.5)
+    ax.plot(fCH4[0,:],x[0,:],linewidth=2.5,linestyle=":", color="purple",label=llist["0"])
+    ax.plot(fCH4[1,:],x[1,:],linewidth=2.5,linestyle="-",color="blue",label=llist["1"])
+    ax.plot(fCH4[2,:],x[2,:],linewidth=2.5,linestyle="--",color="black",label=llist["2"])
+    ax.plot(fCH4[3,:],x[3,:],linewidth=2.5,linestyle="--",color="orange",label=llist["3"])
+    ax.plot(fCH4[4,:],x[4,:],linewidth=2.5,linestyle="-.",color="green",label=llist["4"])
+    ax.errorbar(ANME2d["f"],ANME2d[n],xerr=ANME2d["fse"],yerr=ANME2d[ne],markerfacecolor="blue",
+               markersize=14,fmt="o",markeredgecolor="black",markeredgewidth=2.5, label="ANME (N-AOM)")
+    ax.errorbar(Oct["f"],Oct[n],xerr=Oct["fse"],yerr=Oct[ne],markerfacecolor="red",
+               markersize=14,fmt="D",markeredgecolor="black",markeredgewidth=2.5, label="NC10+ANME+Oct")
+    ax.errorbar(AOM_P["f"],AOM_P[n],xerr=AOM_P["fse"],yerr=AOM_P[ne],markerfacecolor="orange",
+               markersize=14,fmt="s",markeredgecolor="black",markeredgewidth=2.5, label="S-AOM (high sulfate, Liu et al)")
+    ax.errorbar(AOM_wegener["f"],AOM_wegener[n],xerr=AOM_wegener["fse"],yerr=AOM_wegener[ne],markerfacecolor="white",
+               markersize=14,fmt="^",markeredgecolor="black",markeredgewidth=2.5, label="S-AOM (high sulfate, Wegener et al)")
+    ax.errorbar(AOM_ono["f"],AOM_ono[n],xerr=AOM_ono["fse"],yerr=AOM_ono[ne],markerfacecolor="white",
+               markersize=14,fmt="v",markeredgecolor="black",markeredgewidth=2.5, label="S-AOM (high sulfate, Ono et al)")
     ax.invert_xaxis()
+    ax.set_xlim([1.05,0.0])
+    ax.xaxis.set_minor_locator(AutoMinorLocator(5))    
+    ax.yaxis.set_minor_locator(AutoMinorLocator(5))
 
 plotf_norm(normC,"ln(c/c0)","lncse",ax_f1)
-set_axis(ax_f1,r"-ln$f$",r'ln$\frac{\delta^{13}{\rm C}+1000}{\delta^{13}{\rm C}_{\rm init}+1000}$')
-ax_f1.set_xlim([-0.1,2.7])
-ax_f1.set_ylim([-0.03,0.06])
-ax_f1.xaxis.set_minor_locator(MultipleLocator(0.1))
-ax_f1.yaxis.set_minor_locator(MultipleLocator(0.01))
+set_axis(ax_f1,r"Residual methane fraction, f",r'ln$\frac{\delta^{13}{\rm C}+1000}{\delta^{13}{\rm C}_{\rm init}+1000}$')
+# ax_f1.set_ylim([-0.03,0.06])
 plotf_norm(normD,"ln(d/d0)","lndse",ax_f2)
-set_axis(ax_f2,r"-ln$f$",r'ln$\frac{\delta{\rm D}+1000}{\delta{\rm D}_{\rm init}+1000}$')
-# ax_f2.set_ylim([-220,350])
-ax_f2.set_xlim([-0.1,2.7])
+set_axis(ax_f2,r"Residual methane fraction, f",r'ln$\frac{\delta{\rm D}+1000}{\delta{\rm D}_{\rm init}+1000}$')
 # ax_f2.set_ylim([-0.02,0.24])
-ax_f2.xaxis.set_minor_locator(MultipleLocator(0.1))
-ax_f2.yaxis.set_minor_locator(MultipleLocator(0.02))
 plotf_norm(normCD,"DeltaCD","se",ax_f3)
-set_axis(ax_f3,r"-ln$f$",r'$\Delta \Delta^{13}$CH$_3$D'+'(\u2030)')
-ax_f3.set_xlim([-0.1,2.7])
-ax_f3.set_ylim([-10,15])
-ax_f3.xaxis.set_minor_locator(MultipleLocator(0.1))
-ax_f3.yaxis.set_minor_locator(MultipleLocator(1))
+set_axis(ax_f3,r"Residual methane fraction, f",r'$\Delta \Delta^{13}$CH$_3$D'+'(\u2030)')
+# ax_f3.set_ylim([-10,15])
 plotf_norm(normDD,"DeltaDD","se",ax_f4)
-set_axis(ax_f4,r"-ln$f$",r'$\Delta \Delta^{12}$CH$_2$D$_2$'+'(\u2030)')
-ax_f4.set_xlim([-0.1,2.7])
-ax_f4.set_ylim([-50,50])
-ax_f4.xaxis.set_minor_locator(MultipleLocator(0.1))
-ax_f4.yaxis.set_minor_locator(MultipleLocator(10))
+set_axis(ax_f4,r"Residual methane fraction, f",r'$\Delta \Delta^{12}$CH$_2$D$_2$'+'(\u2030)')
+# ax_f4.set_ylim([-50,50])
+ax_f2.legend(fontsize=18)
 
 if output==True:
     fig_bulk.savefig("bulk_model.pdf",bbox_inches="tight")
