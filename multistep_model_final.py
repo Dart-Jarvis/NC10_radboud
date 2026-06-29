@@ -9,9 +9,9 @@ from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 output=True # True if you want to save the plots as pdf
 ff="ab initio" # Select the KIEs in the model: 
 model="INT"
-rev1_list=[0.0,0.32,0.55,0.78,0.9] # First-step reversibility list, CH4 <-> CH3-SCoM; each value ranges from 0 to <1
-rev2_list=[0.0,0.97,0.55,0.54,0.96] # Second-step reversibility list, CH3-SCoM <-> CHO-MFR; each value ranges from 0 to <1
-rev3_list=[0.0,0.86,0.6,0.03,0.96] # Third-step reversibility list, CHO-MFR <-> CO2; each value ranges from 0 to <1
+rev1_list=[0.0,0.41,0.55,0.77,0.9] # First-step reversibility list, CH4 <-> CH3-SCoM; each value ranges from 0 to <1
+rev2_list=[0.0,0.97,0.6,0.47,0.96] # Second-step reversibility list, CH3-SCoM <-> CHO-MFR; each value ranges from 0 to <1
+rev3_list=[0.0,0.25,0.25,0.42,0.96] # Third-step reversibility list, CHO-MFR <-> CO2; each value ranges from 0 to <1
 t_lower=0.000 # minimum time for time interval
 time_list=[35.0,50.0,100.0,200.0,380.0] # Maximum time for time interval, relevant to the final fraction of methane left
 num=100000 # Number of tim steps
@@ -64,21 +64,21 @@ if ff=="experiment":
 # Ab initio calculation using the DFT model from Wognate et al.
 if ff=="ab initio": 
     if model=="no INT": # Not considering the equilibrium isotope effect between methane and INT
-        a1cff=0.9364
-        a1dffp=0.5203
-        a1dffs=0.8341
-        a1cdffp=0.4844
-        a1cdffs=0.7814
-        a1ddffp=0.4293
-        a1ddffs=0.6972
+        a1cff=0.9359
+        a1dffp=0.5185
+        a1dffs=0.8312
+        a1cdffp=0.4825
+        a1cdffs=0.7784
+        a1ddffp=0.4227
+        a1ddffs=0.6865
     if model=="INT":
-        a1cff=0.9368
-        a1dffp=0.5276
-        a1dffs=0.8517
-        a1cdffp=0.4915 # 0.3459 for experimental observations
-        a1cdffs=0.7983 # 0.8322
-        a1ddffp=0.4447 # 0.3102
-        a1ddffs=0.7267 # 0.7600
+        a1cff=0.9359
+        a1dffp=0.5185
+        a1dffs=0.8370
+        a1cdffp=0.4825 # 0.3459 for experimental observations
+        a1cdffs=0.7937 # 0.8322
+        a1ddffp=0.4292 # 0.3102
+        a1ddffs=0.7013 # 0.7600
     # Calculate the fractionation factors of the backward reactions for mcr
     a1cfb=a1cff*a1cfeq
     a1dfbp=a1dffp*a1dfeqp # primary isotope effect backwards
@@ -106,8 +106,8 @@ a2deq=1/np.exp(42.9/1000)*((1/np.exp(81.3/1000)+1/np.exp(84.0/1000))/2)*1/np.exp
 # KFFs from Wegener et al., 2022, Sci Adv
 a2cff=0.979 # 13C effect, CH3-SCoM -> CHO-MFR
 a2dff=0.999 # D effect, CH3-SCoM -> CHO-MFR
-gammaCDff2=0.979
-gammaDDff2=0.92
+gammaCDff2=0.972
+gammaDDff2=0.931
 gammaCDfb2=1.0
 gammaDDfb2=1.0
 a2cdff=gammaCDff2*a2cff*a2dff # 13C-D clumped effect, CH3-SCoM -> CHO-MFR
@@ -408,9 +408,9 @@ for i in range(n_models):
 
 # AeOM fractionation by sMMO
 a13C_sMMO=0.9872
-aD_sMMO=0.7271
-a13CD_sMMO=0.7175
-aDD_sMMO=0.4857
+aD_sMMO=0.7292
+a13CD_sMMO=0.7196
+aDD_sMMO=0.4877
 # Experimental results of MCR exchange by Scheller et al.
 a13C_mcr_exp=1/1.039/a1cfeq
 aD_mcr_exp=1/2.44/4+1/1.17*3/4

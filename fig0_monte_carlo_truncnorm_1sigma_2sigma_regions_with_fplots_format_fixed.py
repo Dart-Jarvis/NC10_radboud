@@ -95,23 +95,23 @@ SERIES_DATA_LABELS = {
 
 # Central reversibility values: [rev1, rev2, rev3]
 SERIES_REVS = {
-    "ANME2d": [0.32, 0.97, 0.86],
-    "AOM_P":  [0.78, 0.54, 0.03],
+    "ANME2d": [0.4, 0.97, 0.15],
+    "AOM_P":  [0.77, 0.47, 0.42],
     "AOM_LS": [0.9, 0.96, 0.96],
     MODEL_ONLY_SERIES_NAME: [0.0, 0.0, 0.0],
 }
 
 # 1-sigma uncertainties for [rev1, rev2, rev3]
 SERIES_SIGMA_REVS = {
-    "ANME2d": [0.04, 0.02, 0.04],
-    "AOM_P":  [0.04, 0.04, 0.02],
+    "ANME2d": [0.04, 0.01, 0.04],
+    "AOM_P":  [0.04, 0.04, 0.04],
     "AOM_LS": [0.02, 0.02, 0.02],
     MODEL_ONLY_SERIES_NAME: [0.0, 0.0, 0.0],
 }
 
 # Shared central gammas and uncertainties.
-GAMMA_CD_FF2 = 0.979
-GAMMA_DD_FF2 = 0.920
+GAMMA_CD_FF2 = 0.972
+GAMMA_DD_FF2 = 0.931
 SIGMA_GAMMA_CD_FF2 = 0.005
 SIGMA_GAMMA_DD_FF2 = 0.005
 
@@ -145,7 +145,7 @@ USE_EVENT_STOP = True
 # valid experimental f value from the matching CSV labels. If f is missing, it
 # falls back to MANUAL_F_MIN.
 MANUAL_F_MIN = {
-    "ANME2d": 0.30,
+    "ANME2d": 0.3,
     "AOM_P": 0.10,
     "AOM_LS": 0.50,
     MODEL_ONLY_SERIES_NAME: 0.20,
@@ -274,7 +274,7 @@ SERIES_MARKER_EDGE_WIDTHS = {
 # The 2-sigma region is plotted first and lighter.
 # The 1-sigma region is plotted on top and deeper.
 REGION_ALPHA_1SIGMA = 0.4
-REGION_ALPHA_2SIGMA = 0.0
+REGION_ALPHA_2SIGMA = 0.2
 
 # Legend labels for uncertainty regions.
 # Set any value to None if you do not want that region in the legend.

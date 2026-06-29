@@ -10,9 +10,11 @@ hbar=6.62607015*10**(-34)/(2*math.pi)
 R=8.314
 T=30+273.15
 # Read data
-ts_freq_sMMO_df=pd.read_csv("smmo_frequency_ts.csv")
+# ts_freq_sMMO_df=pd.read_csv("smmo_frequency_ts.csv")
+ts_freq_sMMO_df=pd.read_csv("smmo_ts_new.csv")
 ts_freq_df2=pd.read_csv("CH4_OH_ts.csv")
-ch4_freq_df=pd.read_csv("smmo_frequency_ch4.csv")
+# ch4_freq_df=pd.read_csv("smmo_frequency_ch4.csv")
+ch4_freq_df=pd.read_csv("CH4_new.csv")
 ts_freq_mcr_df=pd.read_csv("mcr_frequency_ts.csv")
 ch4_freq_df2=pd.read_csv("OH_model.csv") # Calculation results from Haghneghdar et al., 2017
 ts_mcr_full_df=pd.read_csv("mcr_ts_freq_filtered.csv")
