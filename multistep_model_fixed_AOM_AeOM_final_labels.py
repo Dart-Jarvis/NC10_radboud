@@ -8,12 +8,12 @@ from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 
 output=True # True if you want to save the plots as pdf
 ff="ab initio" # Select the KIEs in the model: 
-model="INT"
+model="no INT"
 # Fixed AOM endmember reversibility values.
 # R1: CH4 <-> CH3-SCoM; R2: CH3-SCoM <-> CHO-MFR; R3: CHO-MFR <-> CO2.
-rev1_AOM=0.32
+rev1_AOM=0.37
 rev2_AOM=0.97
-rev3_AOM=0.86
+rev3_AOM=0.62
 
 # Fraction of total methane oxidation rate contributed by irreversible AeOM/NC10.
 # Edit this list to choose the AeOM contribution. Each value must be between 0 and 1.
@@ -83,13 +83,13 @@ if ff=="experiment":
 # Ab initio calculation using the DFT model from Wognate et al.
 if ff=="ab initio": 
     if model=="no INT": # Not considering the equilibrium isotope effect between methane and INT
-        a1cff=0.9364
-        a1dffp=0.5203
-        a1dffs=0.8341
-        a1cdffp=0.4844
-        a1cdffs=0.7814
-        a1ddffp=0.4293
-        a1ddffs=0.6972
+        a1cff=0.9359
+        a1dffp=0.5185
+        a1dffs=0.8312
+        a1cdffp=0.4825
+        a1cdffs=0.7784
+        a1ddffp=0.4227
+        a1ddffs=0.6865
     if model=="INT":
         a1cff=0.9368
         a1dffp=0.5276

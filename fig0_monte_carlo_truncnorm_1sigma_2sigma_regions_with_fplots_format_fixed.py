@@ -95,25 +95,25 @@ SERIES_DATA_LABELS = {
 
 # Central reversibility values: [rev1, rev2, rev3]
 SERIES_REVS = {
-    "ANME2d": [0.4, 0.97, 0.15],
-    "AOM_P":  [0.77, 0.47, 0.42],
-    "AOM_LS": [0.9, 0.96, 0.96],
+    "ANME2d": [0.4, 0.95, 0.09],
+    "AOM_P":  [0.81, 0.54, 0.09],
+    "AOM_LS": [0.86, 0.97, 0.97],
     MODEL_ONLY_SERIES_NAME: [0.0, 0.0, 0.0],
 }
 
 # 1-sigma uncertainties for [rev1, rev2, rev3]
 SERIES_SIGMA_REVS = {
-    "ANME2d": [0.04, 0.01, 0.04],
+    "ANME2d": [0.04, 0.02, 0.04],
     "AOM_P":  [0.04, 0.04, 0.04],
-    "AOM_LS": [0.02, 0.02, 0.02],
+    "AOM_LS": [0.04, 0.01, 0.01],
     MODEL_ONLY_SERIES_NAME: [0.0, 0.0, 0.0],
 }
 
 # Shared central gammas and uncertainties.
-GAMMA_CD_FF2 = 0.972
-GAMMA_DD_FF2 = 0.931
-SIGMA_GAMMA_CD_FF2 = 0.005
-SIGMA_GAMMA_DD_FF2 = 0.005
+GAMMA_CD_FF2 = 0.9807
+GAMMA_DD_FF2 = 0.9175
+SIGMA_GAMMA_CD_FF2 = 0.006
+SIGMA_GAMMA_DD_FF2 = 0.006
 
 # Bounds for sampled parameters.
 REV_LOWER = 0.00
@@ -136,7 +136,7 @@ SERIES_TMAX = {
     "ANME2d": 500.0,
     "AOM_P": 500.0,
     "AOM_LS": 500.0,
-    MODEL_ONLY_SERIES_NAME: 1000.0,
+    MODEL_ONLY_SERIES_NAME: 500.0,
 }
 
 USE_EVENT_STOP = True
@@ -147,8 +147,8 @@ USE_EVENT_STOP = True
 MANUAL_F_MIN = {
     "ANME2d": 0.3,
     "AOM_P": 0.10,
-    "AOM_LS": 0.50,
-    MODEL_ONLY_SERIES_NAME: 0.20,
+    "AOM_LS": 0.70,
+    MODEL_ONLY_SERIES_NAME: 0.40,
 }
 
 USE_MANUAL_F_MIN = {
@@ -274,7 +274,7 @@ SERIES_MARKER_EDGE_WIDTHS = {
 # The 2-sigma region is plotted first and lighter.
 # The 1-sigma region is plotted on top and deeper.
 REGION_ALPHA_1SIGMA = 0.4
-REGION_ALPHA_2SIGMA = 0.2
+REGION_ALPHA_2SIGMA = 0.0
 
 # Legend labels for uncertainty regions.
 # Set any value to None if you do not want that region in the legend.
