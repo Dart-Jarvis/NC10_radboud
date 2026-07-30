@@ -2,6 +2,10 @@
 """
 Joint transformed + scale-normalized best-fit search for ANME2d + AOM_P.
 
+This version is written specifically for the primary/secondary Step-2 model and
+fits five independent shared forward gamma factors:
+    gammaCDff2p, gammaCDff2s, gammaDDff2pp, gammaDDff2ps, gammaCDff3.
+
 This script fits the model to the already-normalized experimental columns:
 
     ln(c/c0), ln(d/d0), DeltaCD, DeltaDD
@@ -10,17 +14,22 @@ rather than fitting raw d13C, dD, D13CH3D, D12CH2D2.
 
 Constraint:
     - ANME2d and AOM_P have separate rev1, rev2, rev3 values.
-    - ANME2d and AOM_P share gammaCDff2 and gammaDDff2.
+    - ANME2d and AOM_P share all four forward gamma factors for step 2.
+    - ANME2d and AOM_P also share gammaCDff3 for the forward third step.
+    - Backward gamma factors remain fixed at the values defined in the model.
 
 Default fitted parameters:
     ANME2d_rev1, ANME2d_rev2, ANME2d_rev3,
     AOM_P_rev1,  AOM_P_rev2,  AOM_P_rev3,
-    gammaCDff2, gammaDDff2
+    gammaCDff2p, gammaCDff2s,
+    gammaDDff2pp, gammaDDff2ps,
+    gammaCDff3
 
 Default bounds:
-    rev1, rev2, rev3       : 0.00 to 0.99
-    gammaCDff2             : 0.95 to 1.00
-    gammaDDff2             : 0.90 to 1.00
+    rev1, rev2, rev3          : 0.00 to 0.99
+    gammaCDff2p, gammaCDff2s  : 0.95 to 1.00
+    gammaDDff2pp, gammaDDff2ps: 0.90 to 1.00
+    gammaCDff3                  : 0.95 to 1.00
 
 Objective:
     - Exclude f = 1 rows by default.
@@ -30,18 +39,18 @@ Objective:
       within that series.
 
 Usage:
-    python joint_transformed_scaled_search.py \
+    python joint_transformed_scaled_search_step2_primary_secondary_gammaCDff3.py \
         --model-py "multistep_model_final.py" \
         --data-csv "isotope_data.csv"
 
 Fast test:
-    python joint_transformed_scaled_search.py \
+    python joint_transformed_scaled_search_step2_primary_secondary_gammaCDff3.py \
         --model-py "multistep_model_final.py" \
         --data-csv "isotope_data.csv" \
         --maxiter 20 --popsize 8 --ngrid 500
 
 More serious run:
-    python joint_transformed_scaled_search.py \
+    python joint_transformed_scaled_search_step2_primary_secondary_gammaCDff3.py \
         --model-py "multistep_model_final.py" \
         --data-csv "isotope_data.csv" \
         --maxiter 120 --popsize 20 --ngrid 1000
@@ -60,6 +69,18 @@ from scipy.optimize import differential_evolution, minimize
 
 
 TARGET_COLS = ["ln(c/c0)", "ln(d/d0)", "DeltaCD", "DeltaDD"]
+
+PARAMETER_NAMES = [
+    "ANME2d_rev1", "ANME2d_rev2", "ANME2d_rev3",
+    "AOM_P_rev1", "AOM_P_rev2", "AOM_P_rev3",
+    "gammaCDff2p", "gammaCDff2s",
+    "gammaDDff2pp", "gammaDDff2ps",
+    "gammaCDff3",
+]
+
+# Stores the first exception encountered during optimization so a model error
+# is not silently hidden behind a flat penalty surface.
+_FIRST_MODEL_ERROR = None
 
 
 def load_model_prelude(model_py):
@@ -89,18 +110,51 @@ def load_model_prelude(model_py):
     return module
 
 
-def set_shared_gammas(model, gamma_cd, gamma_dd):
-    """
-    Update gammaCDff2/gammaDDff2 and their derived forward fractionation factors.
+def validate_primary_secondary_model(model):
+    """Fail early unless the loaded model exposes the exact Step-2 variables."""
+    required = [
+        "a2cff", "a2dffp", "a2dffs",
+        "gammaCDff2p", "gammaCDff2s",
+        "gammaDDff2pp", "gammaDDff2ps",
+        "a2cdffp", "a2cdffs", "a2ddffpp", "a2ddffps",
+        "a3cff", "a3dff", "gammaCDff3", "a3cdff",
+        "dfdt", "process", "R0", "t_lower",
+    ]
+    missing = [name for name in required if not hasattr(model, name)]
+    if missing:
+        raise AttributeError(
+            "The selected model is not the primary/secondary Step-2 model. "
+            "Missing variables: " + ", ".join(missing)
+        )
 
-    In the model:
-        a2cdff = gammaCDff2 * a2cff * a2dff
-        a2ddff = gammaDDff2 * a2dff**2
+    # Make sure dfdt reads the same mutable module namespace that is updated
+    # during every optimizer evaluation.
+    if getattr(model.dfdt, "__globals__", None) is not model.__dict__:
+        raise RuntimeError(
+            "dfdt is not bound to the loaded model namespace; gamma updates "
+            "would not propagate into the ODE."
+        )
+
+
+def set_shared_forward_gammas(
+    model, gamma_cd_p, gamma_cd_s, gamma_dd_pp, gamma_dd_ps, gamma_cd3
+):
     """
-    model.gammaCDff2 = float(gamma_cd)
-    model.gammaDDff2 = float(gamma_dd)
-    model.a2cdff = model.gammaCDff2 * model.a2cff * model.a2dff
-    model.a2ddff = model.gammaDDff2 * model.a2dff**2
+    Set the four independent shared forward Step-2 gamma factors plus the
+    shared forward Step-3 CD gamma, then update the exact fractionation
+    factors used by dfdt.
+    """
+    model.gammaCDff2p = float(gamma_cd_p)
+    model.gammaCDff2s = float(gamma_cd_s)
+    model.gammaDDff2pp = float(gamma_dd_pp)
+    model.gammaDDff2ps = float(gamma_dd_ps)
+    model.gammaCDff3 = float(gamma_cd3)
+
+    model.a2cdffp = model.gammaCDff2p * model.a2cff * model.a2dffp
+    model.a2cdffs = model.gammaCDff2s * model.a2cff * model.a2dffs
+    model.a2ddffpp = model.gammaDDff2pp * model.a2dffp**2
+    model.a2ddffps = model.gammaDDff2ps * model.a2dffp * model.a2dffs
+    model.a3cdff = model.gammaCDff3 * model.a3cff * model.a3dff
 
 
 def patch_model_solver(model, ngrid, rtol, atol, method):
@@ -196,8 +250,11 @@ def patch_model_solver(model, ngrid, rtol, atol, method):
     model.model_rev = fast_model_rev
 
 
-def model_transformed_trajectory(model, rev1, rev2, rev3, gamma_cd, gamma_dd,
-                                 tmax, ngrid, f_stop=None):
+def model_transformed_trajectory(
+    model, rev1, rev2, rev3,
+    gamma_cd_p, gamma_cd_s, gamma_dd_pp, gamma_dd_ps, gamma_cd3,
+    tmax, ngrid, f_stop=None
+):
     """
     Run the model and return transformed model outputs using the same
     transformations as normalize_dat() and normalize_clumped_dat():
@@ -207,7 +264,9 @@ def model_transformed_trajectory(model, rev1, rev2, rev3, gamma_cd, gamma_dd,
         DeltaCD   = D13CH3D   - D13CH3D_initial
         DeltaDD   = D12CH2D2  - D12CH2D2_initial
     """
-    set_shared_gammas(model, gamma_cd, gamma_dd)
+    set_shared_forward_gammas(
+        model, gamma_cd_p, gamma_cd_s, gamma_dd_pp, gamma_dd_ps, gamma_cd3
+    )
 
     out = model.model_rev(rev1, rev2, rev3, tmax=tmax, num=ngrid, f_stop=f_stop)
 
@@ -297,23 +356,33 @@ def residual_vector(theta, model, series_info, tmax, ngrid, f_margin, penalty=1e
     theta:
         [ANME2d_rev1, ANME2d_rev2, ANME2d_rev3,
          AOM_P_rev1,  AOM_P_rev2,  AOM_P_rev3,
-         gammaCDff2, gammaDDff2]
+         gammaCDff2p, gammaCDff2s,
+         gammaDDff2pp, gammaDDff2ps, gammaCDff3]
     """
     theta = np.asarray(theta, dtype=float)
 
     anme_revs = theta[0:3]
     aomp_revs = theta[3:6]
-    gamma_cd = theta[6]
-    gamma_dd = theta[7]
+    gamma_cd_p = theta[6]
+    gamma_cd_s = theta[7]
+    gamma_dd_pp = theta[8]
+    gamma_dd_ps = theta[9]
+    gamma_cd3 = theta[10]
 
     # Safety bounds. The optimizer also has bounds, but this protects direct calls.
     if np.any(anme_revs < 0.0) or np.any(anme_revs > 0.99):
         return np.full(10, penalty)
     if np.any(aomp_revs < 0.0) or np.any(aomp_revs > 0.99):
         return np.full(10, penalty)
-    if not (0.95 <= gamma_cd <= 1.00):
+    if not (0.95 <= gamma_cd_p <= 1.00):
         return np.full(10, penalty)
-    if not (0.90 <= gamma_dd <= 1.00):
+    if not (0.95 <= gamma_cd_s <= 1.00):
+        return np.full(10, penalty)
+    if not (0.90 <= gamma_dd_pp <= 1.00):
+        return np.full(10, penalty)
+    if not (0.90 <= gamma_dd_ps <= 1.00):
+        return np.full(10, penalty)
+    if not (0.95 <= gamma_cd3 <= 1.00):
         return np.full(10, penalty)
 
     try:
@@ -330,8 +399,11 @@ def residual_vector(theta, model, series_info, tmax, ngrid, f_margin, penalty=1e
                 rev1=revs[0],
                 rev2=revs[1],
                 rev3=revs[2],
-                gamma_cd=gamma_cd,
-                gamma_dd=gamma_dd,
+                gamma_cd_p=gamma_cd_p,
+                gamma_cd_s=gamma_cd_s,
+                gamma_dd_pp=gamma_dd_pp,
+                gamma_dd_ps=gamma_dd_ps,
+                gamma_cd3=gamma_cd3,
                 tmax=tmax,
                 ngrid=ngrid,
                 f_stop=f_stop,
@@ -351,7 +423,10 @@ def residual_vector(theta, model, series_info, tmax, ngrid, f_margin, penalty=1e
 
         return residuals
 
-    except Exception:
+    except Exception as exc:
+        global _FIRST_MODEL_ERROR
+        if _FIRST_MODEL_ERROR is None:
+            _FIRST_MODEL_ERROR = repr(exc)
         return np.full(10, penalty)
 
 
@@ -380,8 +455,11 @@ def build_predictions_table(theta, model, series_info, tmax, ngrid, f_margin):
             rev1=revs[0],
             rev2=revs[1],
             rev3=revs[2],
-            gamma_cd=theta[6],
-            gamma_dd=theta[7],
+            gamma_cd_p=theta[6],
+            gamma_cd_s=theta[7],
+            gamma_dd_pp=theta[8],
+            gamma_dd_ps=theta[9],
+            gamma_cd3=theta[10],
             tmax=tmax,
             ngrid=ngrid,
             f_stop=f_stop,
@@ -396,8 +474,11 @@ def build_predictions_table(theta, model, series_info, tmax, ngrid, f_margin):
                 "rev1": float(revs[0]),
                 "rev2": float(revs[1]),
                 "rev3": float(revs[2]),
-                "gammaCDff2": float(theta[6]),
-                "gammaDDff2": float(theta[7]),
+                "gammaCDff2p": float(theta[6]),
+                "gammaCDff2s": float(theta[7]),
+                "gammaDDff2pp": float(theta[8]),
+                "gammaDDff2ps": float(theta[9]),
+                "gammaCDff3": float(theta[10]),
             }
 
             for col in TARGET_COLS:
@@ -455,9 +536,14 @@ def build_summary_table(predictions):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model-py", required=True, help="Path to multistep_model_final.py")
+    parser.add_argument(
+        "--model-py", required=True,
+        help="Path to the model with gammaCDff2p/s, gammaDDff2pp/ps, and gammaCDff3"
+    )
     parser.add_argument("--data-csv", required=True, help="Path to isotope_data.csv")
-    parser.add_argument("--out-prefix", default="joint_transformed_scaled")
+    parser.add_argument(
+        "--out-prefix", default="joint_transformed_scaled_step2_primary_secondary_gammaCDff3"
+    )
     parser.add_argument("--include-initial", action="store_true", help="Include f=1 rows")
     parser.add_argument("--ngrid", type=int, default=900, help="ODE output grid size")
     parser.add_argument("--tmax", type=float, default=500.0, help="Safety cap for model integration time; event stop usually ends earlier")
@@ -468,11 +554,15 @@ def main():
     parser.add_argument("--maxiter", type=int, default=90, help="Differential evolution iterations")
     parser.add_argument("--popsize", type=int, default=15, help="Differential evolution population size")
     parser.add_argument("--seed", type=int, default=1)
-    parser.add_argument("--gammaDD-lower", type=float, default=0.90)
-    parser.add_argument("--gammaCD-lower", type=float, default=0.95)
+    parser.add_argument("--gammaCDp-lower", type=float, default=0.95)
+    parser.add_argument("--gammaCDs-lower", type=float, default=0.95)
+    parser.add_argument("--gammaDDpp-lower", type=float, default=0.90)
+    parser.add_argument("--gammaDDps-lower", type=float, default=0.90)
+    parser.add_argument("--gammaCD3-lower", type=float, default=0.95)
     args = parser.parse_args()
 
     model = load_model_prelude(args.model_py)
+    validate_primary_secondary_model(model)
     patch_model_solver(
         model,
         ngrid=args.ngrid,
@@ -501,16 +591,22 @@ def main():
         (0.00, 0.99),  # AOM_P rev1
         (0.00, 0.99),  # AOM_P rev2
         (0.00, 0.99),  # AOM_P rev3
-        (args.gammaCD_lower, 1.00),  # shared gammaCDff2
-        (args.gammaDD_lower, 1.00),  # shared gammaDDff2
+        (args.gammaCDp_lower, 1.00),  # shared gammaCDff2p
+        (args.gammaCDs_lower, 1.00),  # shared gammaCDff2s
+        (args.gammaDDpp_lower, 1.00),  # shared gammaDDff2pp
+        (args.gammaDDps_lower, 1.00),  # shared gammaDDff2ps
+        (args.gammaCD3_lower, 1.00),  # shared gammaCDff3
     ]
 
     print("Fitting transformed columns:")
     for col in TARGET_COLS:
         print(f"  {col}")
     print("\nBounds:")
-    print(f"  gammaCDff2: {args.gammaCD_lower} to 1.00")
-    print(f"  gammaDDff2: {args.gammaDD_lower} to 1.00")
+    print(f"  gammaCDff2p (CD primary):   {args.gammaCDp_lower} to 1.00")
+    print(f"  gammaCDff2s (CD secondary): {args.gammaCDs_lower} to 1.00")
+    print(f"  gammaDDff2pp (DD p-p):      {args.gammaDDpp_lower} to 1.00")
+    print(f"  gammaDDff2ps (DD p-s):      {args.gammaDDps_lower} to 1.00")
+    print(f"  gammaCDff3 (Step-3 CD):     {args.gammaCD3_lower} to 1.00")
     print(f"  exclude f=1 rows: {not args.include_initial}")
 
     print("\nStarting differential evolution...")
@@ -527,6 +623,17 @@ def main():
         tol=1e-4,
         disp=True,
     )
+
+    if _FIRST_MODEL_ERROR is not None and not np.isfinite(de.fun):
+        raise RuntimeError(
+            "The model failed during optimization. First error: " + _FIRST_MODEL_ERROR
+        )
+
+    # A completely flat penalty objective usually means every model call failed.
+    if de.fun >= 1e12 and _FIRST_MODEL_ERROR is not None:
+        raise RuntimeError(
+            "Every model evaluation failed. First error: " + _FIRST_MODEL_ERROR
+        )
 
     print("\nPolishing with L-BFGS-B...")
     local = minimize(
@@ -556,8 +663,11 @@ def main():
         "AOM_P_rev1": best[3],
         "AOM_P_rev2": best[4],
         "AOM_P_rev3": best[5],
-        "gammaCDff2": best[6],
-        "gammaDDff2": best[7],
+        "gammaCDff2p": best[6],
+        "gammaCDff2s": best[7],
+        "gammaDDff2pp": best[8],
+        "gammaDDff2ps": best[9],
+        "gammaCDff3": best[10],
         "scaled_ss": best_obj,
         "scaled_rmse": float(np.sqrt(np.mean(r**2))),
         "n_residuals": len(r),
@@ -571,25 +681,73 @@ def main():
         "f_margin": args.f_margin,
     }])
 
+    gamma_results = pd.DataFrame([
+        {
+            "gamma_name": "gammaCDff2p",
+            "isotope_class": "CD",
+            "position_class": "primary",
+            "best_fit": float(best[6]),
+            "lower_bound": float(args.gammaCDp_lower),
+            "upper_bound": 1.0,
+        },
+        {
+            "gamma_name": "gammaCDff2s",
+            "isotope_class": "CD",
+            "position_class": "secondary",
+            "best_fit": float(best[7]),
+            "lower_bound": float(args.gammaCDs_lower),
+            "upper_bound": 1.0,
+        },
+        {
+            "gamma_name": "gammaDDff2pp",
+            "isotope_class": "DD",
+            "position_class": "primary-primary",
+            "best_fit": float(best[8]),
+            "lower_bound": float(args.gammaDDpp_lower),
+            "upper_bound": 1.0,
+        },
+        {
+            "gamma_name": "gammaDDff2ps",
+            "isotope_class": "DD",
+            "position_class": "primary-secondary",
+            "best_fit": float(best[9]),
+            "lower_bound": float(args.gammaDDps_lower),
+            "upper_bound": 1.0,
+        },
+        {
+            "gamma_name": "gammaCDff3",
+            "isotope_class": "CD",
+            "position_class": "step-3",
+            "best_fit": float(best[10]),
+            "lower_bound": float(args.gammaCD3_lower),
+            "upper_bound": 1.0,
+        },
+    ])
+
     predictions = build_predictions_table(best, model, series_info, args.tmax, args.ngrid, args.f_margin)
     summary = build_summary_table(predictions)
 
     params_path = f"{args.out_prefix}_bestfit_params.csv"
     pred_path = f"{args.out_prefix}_predictions.csv"
     summary_path = f"{args.out_prefix}_summary.csv"
+    gamma_path = f"{args.out_prefix}_bestfit_gammas.csv"
 
     params.to_csv(params_path, index=False)
+    gamma_results.to_csv(gamma_path, index=False)
     predictions.to_csv(pred_path, index=False)
     summary.to_csv(summary_path, index=False)
 
     print("\nBest-fit parameters:")
     print(params.T)
+    print("\nBest-fit forward Step-2 and Step-3 gamma factors (separate):")
+    print(gamma_results.to_string(index=False))
 
     print("\nResidual summary:")
     print(summary)
 
     print("\nWrote:")
     print(f"  {params_path}")
+    print(f"  {gamma_path}")
     print(f"  {pred_path}")
     print(f"  {summary_path}")
 

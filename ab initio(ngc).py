@@ -8,7 +8,7 @@ h=6.62607015*10**(-34) # Plank constant, J/s
 kb=1.380649*10**(-23) # Boltzmann constant, J/K
 hbar=6.62607015*10**(-34)/(2*math.pi)
 R=8.314
-T=30+273.15
+T=50+273.15
 # Read data
 # ts_freq_sMMO_df=pd.read_csv("smmo_frequency_ts.csv")
 ts_freq_sMMO_df=pd.read_csv("smmo_ts_new.csv")
@@ -240,12 +240,12 @@ a13_mcr_tot=a13_mcr_full*a13_eq_int
 aH_mcr_tot=aH_mcr_full*aH_eq_int
 aCD_mcr_tot=aCD_mcr_full*aCD_eq_int
 aDD_mcr_tot=aDD_mcr_full*aDD_eq_int
-aHp_mcr_tot=aHp_eq*0.5202677142901856 
-aHs_mcr_tot=aHs_eq*0.8340612886584756
-aCDp_mcr_tot=aCDp_eq*0.4844256973210034
-aCDs_mcr_tot=aCDs_eq*0.7814320692232366
-aDDp_mcr_tot=aDDp_eq*0.4292911654029593
-aDDs_mcr_tot=aDDs_eq*0.6971721934051316
+aHp_mcr_tot=aHp_eq*0.5434511981283037 
+aHs_mcr_tot=aHs_eq*0.8459780726245785 
+aCDp_mcr_tot=aCDp_eq*0.5077694130643531 
+aCDs_mcr_tot=aCDs_eq*0.7949171726538558 
+aDDp_mcr_tot=aDDp_eq*0.4557508144253984 
+aDDs_mcr_tot=aDDs_eq*0.7173715934816
 
 print("Full mcr reaction")
 print("a13C:", a13_mcr_tot)

@@ -1,0 +1,6 @@
+gamma_name,isotope_class,position_class,best_fit,lower_bound,upper_bound
+gammaCDff2p,CD,primary,0.9875205502947607,0.9,1.0
+gammaCDff2s,CD,secondary,0.9005486268546123,0.9,1.0
+gammaDDff2pp,DD,primary-primary,0.9607213740095348,0.9,1.0
+gammaDDff2ps,DD,primary-secondary,0.9535083106702402,0.9,1.0
+gammaCDff3,CD,step-3,0.9007171404139901,0.9,1.0

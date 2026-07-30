@@ -9,15 +9,16 @@ from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 output=True # True if you want to save the plots as pdf
 ff="ab initio" # Select the KIEs in the model: 
 model="no INT"
-rev1_list=[0.0,0.42,0.55,0.81,0.9] # First-step reversibility list, CH4 <-> CH3-SCoM; each value ranges from 0 to <1
-rev2_list=[0.0,0.99,0.6,0.54,0.999] # Second-step reversibility list, CH3-SCoM <-> CHO-MFR; each value ranges from 0 to <1
-rev3_list=[0.0,0.0,0.25,0.0,0.999] # Third-step reversibility list, CHO-MFR <-> CO2; each value ranges from 0 to <1
+F420=True
+rev1_list=[0.0,0.34,0.55,0.73,0.95] # First-step reversibility list, CH4 <-> CH3-SCoM; each value ranges from 0 to <1
+rev2_list=[0.0,0.99,0.6,0.65,0.999] # Second-step reversibility list, CH3-SCoM <-> CHO-MFR; each value ranges from 0 to <1
+rev3_list=[0.0,0.004,0.25,0.96,0.999] # Third-step reversibility list, CHO-MFR <-> CO2; each value ranges from 0 to <1
 t_lower=0.000 # minimum time for time interval
-time_list=[35.0,50.0,100.0,150.0,380.0] # Maximum time for time interval, relevant to the final fraction of methane left
+time_list=[35.0,50.0,100.0,100.0,500.0] # Maximum time for time interval, relevant to the final fraction of methane left
 num=100000 # Number of tim steps
 # "experiment": data from Scheller et al., 2013;
 # "Ab initio": ab initio calculation in this study
-dDH2O = -53.0 # permil dD_H2O
+dDH2O = -50.0 # permil dD_H2O
 d13C_DIC=-15.0 # permil
 RVPDB = 0.0112372 # Standard carbon isotope ratio (VPDB)
 RVSMOW = 1.5576e-4 # Standard hydrogen isotope ratio (VSMOW)
@@ -28,7 +29,7 @@ F13C_DIC=R13C_DIC/(1+R13C_DIC)
 
 #-------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------
-# Equlibrium isotope effect of the first step, from Gropp et al., 2021 (25 degree C)
+# Equlibrium isotope effect of the first step, from Gropp et al., 2021 (50 degree C)
 a1cfeq=1/np.exp(0.8/1000)
 a1dfeqp=1/np.exp(-580.0/1000) # Primary equilibrium fractionation
 a1dfeqs=1/np.exp(44.2/1000) # Secondary equilibrium fractionation
@@ -64,24 +65,24 @@ if ff=="experiment":
     a1ddfbs=a1ddffs*a1ddfeqs
     print("Net fractionation factors of the first step (forward):")
     print(a1cff, "\n", a1dfnet, "\n", a1cdffnet, "\n", a1ddffnet)
-# Ab initio calculation using the DFT model from Wognate et al.
+# Ab initio calculation using the DFT model from Wognate et al., 50 degree C
 if ff=="ab initio": 
     if model=="no INT": # Not considering the equilibrium isotope effect between methane and INT
-        a1cff=0.9359
-        a1dffp=0.5185
-        a1dffs=0.8312
-        a1cdffp=0.4825
-        a1cdffs=0.7784
-        a1ddffp=0.4227
-        a1ddffs=0.6865
+        a1cff=0.9387
+        a1dffp=0.5416
+        a1dffs=0.8432
+        a1cdffp=0.5058
+        a1cdffs=0.7919
+        a1ddffp=0.4491
+        a1ddffs=0.7069
     if model=="INT":
-        a1cff=0.9359
-        a1dffp=0.5185
-        a1dffs=0.8370
-        a1cdffp=0.4825 # 0.3459 for experimental observations
-        a1cdffs=0.7937 # 0.8322
-        a1ddffp=0.4292 # 0.3102
-        a1ddffs=0.7013 # 0.7600
+        a1cff=0.9387
+        a1dffp=0.5416
+        a1dffs=0.8483
+        a1cdffp=0.5058 # 0.3459 for experimental observations
+        a1cdffs=0.7967 # 0.8322
+        a1ddffp=0.4554 # 0.3102
+        a1ddffs=0.7208 # 0.7600
     # Calculate the fractionation factors of the backward reactions for mcr
     a1cfb=a1cff*a1cfeq
     a1dfbp=a1dffp*a1dfeqp # primary isotope effect backwards
@@ -98,30 +99,48 @@ if ff=="ab initio":
     print(a1cff, "\n", a1dfnet, "\n", a1cdffnet, "\n", a1ddffnet)
 
 # Isotope fractionation factors for the two downstream reversible steps.
-# These are placeholders set to 1.0 for now; edit them later when you want
-# to add step-specific kinetic/equilibrium isotope effects.
-#
 # Step 2: CH3-SCoM <-> CHO-MFR
-a2ceq=0.9540 #1/np.exp(18.1/1000)*1/np.exp(15.8/1000)*1/np.exp(16.9/1000)*1/np.exp(-3.3/1000)*1/np.exp(1.9/1000)
-a2deqp=0.8748
-a2deqs=0.9764 #1/np.exp(42.9/1000)*((1/np.exp(81.3/1000)+1/np.exp(84.0/1000))/2)*1/np.exp(-78.2/1000)*1/np.exp(-70.5/1000)*1/np.exp(8.5/1000)
-# KFFs and EFFs from Wegener et al., 2022, Sci Adv
-a2cff=0.979 # 13C effect, CH3-SCoM -> CHO-MFR
-a2dffp=0.888 # primary D effect, CH3-SCoM -> CHO-MFR
-a2dffs=1.000 # secondary D effect, CH3-SCoM -> CHO-MFR
-a2dff=2/3*a2dffp+1/3*a2dffs # net effect
-gammaCDff2=0.9807
-gammaDDff2=0.9175
-gammaCDfb2=1.0
-gammaDDfb2=1.0
-a2cdff=gammaCDff2*a2cff*a2dff # 13C-D clumped effect, CH3-SCoM -> CHO-MFR
-a2ddff=gammaDDff2*a2dff**2 # D-D clumped effect, CH3-SCoM -> CHO-MFR
-a2cfb=a2cff*a2ceq # 13C effect, CHO-MFR -> CH3-SCoM
-a2dfbp=a2dffp*a2deqp # primary D effect, CHO-MFR -> CH3-SCoM
-a2dfbs=a2dffs*a2deqs # secondary D effect
-a2dfb=2/3*a2dfbp+1/3*a2dfbs
-a2cdfb=gammaCDfb2*a2cfb*a2dfb # 13C-D clumped effect, CHO-MFR -> CH3-SCoM
-a2ddfb=gammaDDfb2*a2dfb**2 # D-D clumped effect, CHO-MFR -> CH3-SCoM
+# Equilibrium fractionation factors (forward-direction convention).
+a2ceq=0.9540 # 13C EIE, CH3-SCoM -> CHO-MFR
+a2deqp=0.8748 # primary D EIE
+a2deqs=0.9764 # secondary D EIE
+
+# Forward kinetic fractionation factors (CH3-SCoM -> CHO-MFR).
+a2cff=0.979 # 13C effect
+a2dffp=0.888 # primary D effect: D is removed from the methyl group
+a2dffs=1.000 # secondary D effect: D is retained in the formyl group
+a2dffnet=(2.0/3.0)*a2dffp+(1.0/3.0)*a2dffs # diagnostic only
+
+# Clumped-isotopologue gamma factors.
+# p = primary D position; s = secondary D position.
+# pp = two primary D positions; ps = one primary and one secondary D.
+gammaCDff2p=0.9749
+gammaCDff2s=1.0
+gammaDDff2pp=0.9256
+gammaDDff2ps=0.9255
+gammaCDfb2p=1.0
+gammaCDfb2s=1.0
+gammaDDfb2pp=1.0
+gammaDDfb2ps=1.0
+
+# Pathway-specific forward clumped fractionation factors.
+a2cdffp=gammaCDff2p*a2cff*a2dffp
+a2cdffs=gammaCDff2s*a2cff*a2dffs
+a2ddffpp=gammaDDff2pp*a2dffp**2
+a2ddffps=gammaDDff2ps*a2dffp*a2dffs
+
+# Backward KIEs calculated from KIE_backward = KIE_forward * EIE.
+a2cfb=a2cff*a2ceq
+a2dfbp=a2dffp*a2deqp
+a2dfbs=a2dffs*a2deqs
+a2dfbnet=(2.0/3.0)*a2dfbp+(1.0/3.0)*a2dfbs # diagnostic only
+
+# Pathway-specific backward clumped fractionation factors.
+a2cdfbp=gammaCDfb2p*a2cfb*a2dfbp
+a2cdfbs=gammaCDfb2s*a2cfb*a2dfbs
+a2ddfbpp=gammaDDfb2pp*a2dfbp**2
+a2ddfbps=gammaDDfb2ps*a2dfbp*a2dfbs
+
 # Step 3: CHO-MFR <-> CO2
 a3ceq=0.9825 #1/np.exp(17.5/1000)
 a3deq=0.8959 #1/np.exp(153.2/1000)
@@ -143,9 +162,12 @@ rev_hscob=0.99
 
 # F420H2 and water is also assumed to be in equilibrium
 af420h2eq=1.0/np.exp(121.4/1000)
+if F420==False: 
+      af420h2eq=1.0 # Toggle the use of F420 or not  
 RF420H2=RH2O/af420h2eq
 XF420H2=1/(1+RF420H2)
 XF420D=1-XF420H2
+
 
 # reversibility of cross-membrane transport, assuming highly reversibile methane exchange inside and outside the cells, without any isotope fractionation.
 rev_tr=0.99
@@ -226,51 +248,100 @@ def dfdt(t,R,k,rev2,rev3):
     J2f = Jnet/(1.0-rev2)
     J2b = Jnet*rev2/(1.0-rev2)
 
-    # Forward CH3-SCoM -> CHO-MFR partition. Fractionation factors are all
-    # initialized to 1.0 above. The H/D branching is statistical: CH2D has
-    # 2/3 probability to make CHO and 1/3 to make CDO; CHD2 has 1/3 CHO
-    # and 2/3 CDO.
-    fch3f = (R[5] + R[6]*a2cff + R[7]*a2dff + R[8]*a2cdff + R[9]*a2ddff)
+    # Forward CH3-SCoM -> CHO-MFR partition with explicit primary/secondary
+    # H-isotope effects. If D is removed from CH3-SCoM, the primary effect
+    # applies; if D is retained as the formyl D in CDO-MFR, the secondary
+    # effect applies. Statistical coefficients count the possible H/D sites.
+    f2_12CH3_to_12CHO = R[5]
+    f2_13CH3_to_13CHO = R[6]*a2cff
+
+    f2_12CH2D_to_12CHO = R[7]*(2.0/3.0)*a2dffp
+    f2_12CH2D_to_12CDO = R[7]*(1.0/3.0)*a2dffs
+    f2_13CH2D_to_13CHO = R[8]*(2.0/3.0)*a2cdffp
+    f2_13CH2D_to_13CDO = R[8]*(1.0/3.0)*a2cdffs
+
+    # For CHD2-SCoM, formation of CHO removes both D atoms (primary-primary),
+    # whereas formation of CDO removes one D and retains one D
+    # (primary-secondary).
+    f2_12CHD2_to_12CHO = R[9]*(1.0/3.0)*a2ddffpp
+    f2_12CHD2_to_12CDO = R[9]*(2.0/3.0)*a2ddffps
+
+    fch3f = (f2_12CH3_to_12CHO + f2_13CH3_to_13CHO
+             + f2_12CH2D_to_12CHO + f2_12CH2D_to_12CDO
+             + f2_13CH2D_to_13CHO + f2_13CH2D_to_13CDO
+             + f2_12CHD2_to_12CHO + f2_12CHD2_to_12CDO)
+
     if fch3f <= 0.0:
         F2_12CH3 = F2_13CH3 = F2_12CH2D = F2_13CH2D = F2_12CHD2 = 0.0
         F2_12CHO = F2_13CHO = F2_12CDO = F2_13CDO = 0.0
     else:
-        F2_12CH3  = J2f*R[5]/fch3f
-        F2_13CH3  = J2f*R[6]*a2cff/fch3f
-        F2_12CH2D = J2f*R[7]*a2dff/fch3f
-        F2_13CH2D = J2f*R[8]*a2cdff/fch3f
-        F2_12CHD2 = J2f*R[9]*a2ddff/fch3f
-        F2_12CHO = F2_12CH3 + (2.0/3.0)*F2_12CH2D + (1.0/3.0)*F2_12CHD2
-        F2_13CHO = F2_13CH3 + (2.0/3.0)*F2_13CH2D
-        F2_12CDO = (1.0/3.0)*F2_12CH2D + (2.0/3.0)*F2_12CHD2
-        F2_13CDO = (1.0/3.0)*F2_13CH2D
+        j2_12CH3_to_12CHO = J2f*f2_12CH3_to_12CHO/fch3f
+        j2_13CH3_to_13CHO = J2f*f2_13CH3_to_13CHO/fch3f
+        j2_12CH2D_to_12CHO = J2f*f2_12CH2D_to_12CHO/fch3f
+        j2_12CH2D_to_12CDO = J2f*f2_12CH2D_to_12CDO/fch3f
+        j2_13CH2D_to_13CHO = J2f*f2_13CH2D_to_13CHO/fch3f
+        j2_13CH2D_to_13CDO = J2f*f2_13CH2D_to_13CDO/fch3f
+        j2_12CHD2_to_12CHO = J2f*f2_12CHD2_to_12CHO/fch3f
+        j2_12CHD2_to_12CDO = J2f*f2_12CHD2_to_12CDO/fch3f
+
+        # Depletion of CH3-SCoM isotopologue pools.
+        F2_12CH3 = j2_12CH3_to_12CHO
+        F2_13CH3 = j2_13CH3_to_13CHO
+        F2_12CH2D = j2_12CH2D_to_12CHO + j2_12CH2D_to_12CDO
+        F2_13CH2D = j2_13CH2D_to_13CHO + j2_13CH2D_to_13CDO
+        F2_12CHD2 = j2_12CHD2_to_12CHO + j2_12CHD2_to_12CDO
+
+        # Production of CHO-MFR isotopologue pools.
+        F2_12CHO = j2_12CH3_to_12CHO + j2_12CH2D_to_12CHO + j2_12CHD2_to_12CHO
+        F2_13CHO = j2_13CH3_to_13CHO + j2_13CH2D_to_13CHO
+        F2_12CDO = j2_12CH2D_to_12CDO + j2_12CHD2_to_12CDO
+        F2_13CDO = j2_13CH2D_to_13CDO
 
     # Backward CHO-MFR -> CH3-SCoM partition. The formyl H/D is retained,
-    # and the other two methyl H/D positions are supplied from F420H2.
-    b2_12CH3_rate  = R[17]*(XF420H2**2)
-    b2_12CH2D_rate = (R[17]*(2*XF420H2*XF420D)*a2dfb + R[19]*(XF420H2**2)*a2dfb)
-    b2_12CHD2_rate = (R[17]*(XF420D**2)*a2ddfb + R[19]*(2*XF420H2*XF420D)*a2ddfb)
-    b2_13CH3_rate  = R[18]*a2cfb*(XF420H2**2)
-    b2_13CH2D_rate = (R[18]*(2*XF420H2*XF420D)*a2cdfb + R[20]*(XF420H2**2)*a2cdfb)
-    fcho_b = (b2_12CH3_rate + b2_12CH2D_rate + b2_12CHD2_rate
-              + b2_13CH3_rate + b2_13CH2D_rate)
+    # while two additional methyl H/D atoms are supplied by F420H2. D added
+    # from F420H2 carries the backward primary effect; formyl D carries the
+    # backward secondary effect.
+    b2_12CHO_to_12CH3 = R[17]*(XF420H2**2)
+    b2_12CHO_to_12CH2D = R[17]*(2.0*XF420H2*XF420D)*a2dfbp
+    b2_12CHO_to_12CHD2 = R[17]*(XF420D**2)*a2ddfbpp
+    b2_12CDO_to_12CH2D = R[19]*(XF420H2**2)*a2dfbs
+    b2_12CDO_to_12CHD2 = R[19]*(2.0*XF420H2*XF420D)*a2ddfbps
+
+    b2_13CHO_to_13CH3 = R[18]*a2cfb*(XF420H2**2)
+    b2_13CHO_to_13CH2D = R[18]*(2.0*XF420H2*XF420D)*a2cdfbp
+    b2_13CDO_to_13CH2D = R[20]*(XF420H2**2)*a2cdfbs
+
+    fcho_b = (b2_12CHO_to_12CH3 + b2_12CHO_to_12CH2D
+              + b2_12CHO_to_12CHD2 + b2_12CDO_to_12CH2D
+              + b2_12CDO_to_12CHD2 + b2_13CHO_to_13CH3
+              + b2_13CHO_to_13CH2D + b2_13CDO_to_13CH2D)
+
     if J2b == 0.0 or fcho_b <= 0.0:
         B2_12CH3 = B2_12CH2D = B2_12CHD2 = B2_13CH3 = B2_13CH2D = 0.0
-    else:
-        B2_12CH3  = J2b*b2_12CH3_rate/fcho_b
-        B2_12CH2D = J2b*b2_12CH2D_rate/fcho_b
-        B2_12CHD2 = J2b*b2_12CHD2_rate/fcho_b
-        B2_13CH3  = J2b*b2_13CH3_rate/fcho_b
-        B2_13CH2D = J2b*b2_13CH2D_rate/fcho_b
-
-    # Depletion of CHO-MFR pools by the backward step, grouped by source pool.
-    if J2b == 0.0 or fcho_b <= 0.0:
         B2_12CHO = B2_13CHO = B2_12CDO = B2_13CDO = 0.0
     else:
-        B2_12CHO = J2b*(R[17]*(XF420H2**2) + R[17]*(2*XF420H2*XF420D)*a2dfb + R[17]*(XF420D**2)*a2ddfb)/fcho_b
-        B2_13CHO = J2b*(R[18]*a2cfb*(XF420H2**2) + R[18]*(2*XF420H2*XF420D)*a2cdfb)/fcho_b
-        B2_12CDO = J2b*(R[19]*(XF420H2**2)*a2dfb + R[19]*(2*XF420H2*XF420D)*a2ddfb)/fcho_b
-        B2_13CDO = J2b*(R[20]*(XF420H2**2)*a2cdfb)/fcho_b
+        j2b_12CHO_to_12CH3 = J2b*b2_12CHO_to_12CH3/fcho_b
+        j2b_12CHO_to_12CH2D = J2b*b2_12CHO_to_12CH2D/fcho_b
+        j2b_12CHO_to_12CHD2 = J2b*b2_12CHO_to_12CHD2/fcho_b
+        j2b_12CDO_to_12CH2D = J2b*b2_12CDO_to_12CH2D/fcho_b
+        j2b_12CDO_to_12CHD2 = J2b*b2_12CDO_to_12CHD2/fcho_b
+        j2b_13CHO_to_13CH3 = J2b*b2_13CHO_to_13CH3/fcho_b
+        j2b_13CHO_to_13CH2D = J2b*b2_13CHO_to_13CH2D/fcho_b
+        j2b_13CDO_to_13CH2D = J2b*b2_13CDO_to_13CH2D/fcho_b
+
+        # Production of CH3-SCoM isotopologue pools.
+        B2_12CH3 = j2b_12CHO_to_12CH3
+        B2_12CH2D = j2b_12CHO_to_12CH2D + j2b_12CDO_to_12CH2D
+        B2_12CHD2 = j2b_12CHO_to_12CHD2 + j2b_12CDO_to_12CHD2
+        B2_13CH3 = j2b_13CHO_to_13CH3
+        B2_13CH2D = j2b_13CHO_to_13CH2D + j2b_13CDO_to_13CH2D
+
+        # Depletion of CHO-MFR isotopologue pools.
+        B2_12CHO = (j2b_12CHO_to_12CH3 + j2b_12CHO_to_12CH2D
+                    + j2b_12CHO_to_12CHD2)
+        B2_12CDO = j2b_12CDO_to_12CH2D + j2b_12CDO_to_12CHD2
+        B2_13CHO = j2b_13CHO_to_13CH3 + j2b_13CHO_to_13CH2D
+        B2_13CDO = j2b_13CDO_to_13CH2D
     
     # ------------------------------------------------------------------
     # Step 3: CHO-MFR <-> CO2 with constant flux reversibility

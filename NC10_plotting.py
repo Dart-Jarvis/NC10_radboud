@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from pylab import *
+from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 
 # Font dictionary
 font = {'family': 'sans serif',
@@ -155,8 +156,7 @@ alphas={
     "Cl": alpha_raw[alpha_raw['Label']=="Cl"],
     "red_mass": alpha_raw[alpha_raw['Label']=="red_mass"],
     "Ab initio (sMMO)": alpha_raw[alpha_raw['Label']=="sMMO"],
-    "Ab initio (MCR)":alpha_raw[alpha_raw['Label']=="MCR (with INT)"],
-    "Ab initio (MCR no INT)":alpha_raw[alpha_raw['Label']=="MCR (no INT)"]
+    "Ab initio (MCR)":alpha_raw[alpha_raw['Label']=="MCR"]
 }
 
 
@@ -208,7 +208,6 @@ maskf={
     "red_mass":0,
     "Ab initio (sMMO)": 1,
     "Ab initio (MCR)": 0,
-    "Ab initio (MCR no INT)": 0
 }
 
 def plot_isotopef(ax,x,y,xerr,yerr,msk):
@@ -281,8 +280,7 @@ color_dict={
     "Cl":["gray","^",-2],
     "red_mass":["gray","v",-1],
     "Ab initio (sMMO)":["red","^",2],
-    "Ab initio (MCR)":["black","o",2],
-    "Ab initio (MCR no INT)":["black","D",2]
+    "Ab initio (MCR)":["black","o",2]
 }
 
 fig3,ax3=plt.subplots(figsize=(8,8))
@@ -314,7 +312,6 @@ maskf={
     "red_mass":0,
     "Ab initio (sMMO)": 0,
     "Ab initio (MCR)": 1,
-    "Ab initio (MCR no INT)": 0
 }
 fig4,ax4=plt.subplots(figsize=(8,8))
 for key in alphas.keys():
@@ -508,25 +505,37 @@ BES_con={
     "ctrl_se": consumption.iloc[33,1:]
 }
 
-def plot_con(ax,series,name):
-    ax.errorbar(series["t"],series["exp"],xerr=None,yerr=series["exp_se"],fmt="o-",color="red", markersize=18, linewidth=2.0,
-                markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='red', elinewidth=2.5, label=name+" experiment")
-    ax.errorbar(series["t_ctrl"],series["ctrl"],xerr=None,yerr=series["ctrl_se"],fmt="o-",color="black", markersize=18, linewidth=2.0,
-                markerfacecolor='black', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, label=name+" control", zorder=-1)
-    ax.legend(fontsize=26)
-    set_axis(ax,"Elapse time (days)", r"Headspace methane ($\mu$mol)")
-
 con_nc10,ax_nc10=plt.subplots(figsize=(12,12))
-plot_con(ax_nc10,NC10_con,"NC10")
+ax_nc10.errorbar(NC10_con["t"],NC10_con["exp"],xerr=None,yerr=NC10_con["exp_se"],fmt="o-",color="red", markersize=18, linewidth=2.0,
+            markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='red', elinewidth=2.5, label="NC10 experiment")
+ax_nc10.errorbar(NC10_con["t_ctrl"],NC10_con["ctrl"],xerr=None,yerr=NC10_con["ctrl_se"],fmt="o-",color="black", markersize=18, linewidth=2.0,
+            markerfacecolor='black', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, label="NC10 control", zorder=-1)
+ax_nc10.errorbar(NC10_ANME_con["t"],NC10_ANME_con["exp"],xerr=None,yerr=NC10_ANME_con["exp_se"],fmt="^--",color="red", markersize=18, linewidth=2.0,
+            markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='red', elinewidth=2.5, label="NC10+ANME experiment")
+ax_nc10.errorbar(NC10_ANME_con["t_ctrl"],NC10_ANME_con["ctrl"],xerr=None,yerr=NC10_ANME_con["ctrl_se"],fmt="^--",color="black", markersize=18, linewidth=2.0,
+            markerfacecolor='black', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, label="NC10+ANME control", zorder=-1)
+ax_nc10.legend(fontsize=18)
+set_axis(ax_nc10,"Elapse time (days)", r"Headspace methane ($\mu$mol)")
+ax_nc10.yaxis.set_minor_locator(AutoMinorLocator(5))
+ax_nc10.xaxis.set_minor_locator(AutoMinorLocator(5))
+
 con_anme,ax_anme=plt.subplots(figsize=(12,12))
-plot_con(ax_anme,ANME_con,"ANME")
-con_nc10_anme,ax_nc10_anme=plt.subplots(figsize=(12,12))
-plot_con(ax_nc10_anme,NC10_ANME_con,"NC10+ANME")
-con_oct,ax_oct=plt.subplots(figsize=(12,12))
-plot_con(ax_oct,Oct_con,"NC10+ANME+Oct")
-ax_oct.set_xlim([-1,16])
-con_bes,ax_bes=plt.subplots(figsize=(12,12))
-plot_con(ax_bes,BES_con,"NC10+ANME+BES")
+ax_anme.errorbar(ANME_con["t"],ANME_con["exp"],xerr=None,yerr=ANME_con["exp_se"],fmt="o-",color="red", markersize=18, linewidth=2.0,
+            markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='red', elinewidth=2.5, label="ANME experiment")
+ax_anme.errorbar(ANME_con["t_ctrl"],ANME_con["ctrl"],xerr=None,yerr=ANME_con["ctrl_se"],fmt="o-",color="black", markersize=18, linewidth=2.0,
+            markerfacecolor='black', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, label="ANME control", zorder=-1)
+ax_anme.errorbar(BES_con["t"],BES_con["exp"],xerr=None,yerr=BES_con["exp_se"],fmt="v--",color="red", markersize=18, linewidth=2.0,
+            markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='red', elinewidth=2.5, label="NC10+ANME+BES experiment")
+ax_anme.errorbar(BES_con["t_ctrl"],BES_con["ctrl"],xerr=None,yerr=BES_con["ctrl_se"],fmt="v--",color="black", markersize=18, linewidth=2.0,
+            markerfacecolor='black', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, label="NC10+ANME+BES control", zorder=-1)
+ax_anme.errorbar(Oct_con["t"],Oct_con["exp"],xerr=None,yerr=Oct_con["exp_se"],fmt="s-.",color="red", markersize=18, linewidth=2.0,
+            markerfacecolor='red', markeredgecolor='black',markeredgewidth=2.5, ecolor='red', elinewidth=2.5, label="NC10+ANME+Oct experiment")
+ax_anme.errorbar(Oct_con["t_ctrl"],Oct_con["ctrl"],xerr=None,yerr=Oct_con["ctrl_se"],fmt="s-.",color="black", markersize=18, linewidth=2.0,
+            markerfacecolor='black', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, label="NC10+ANME+Oct control", zorder=-1)
+ax_anme.legend(fontsize=18)
+set_axis(ax_anme,"Elapse time (days)", r"Headspace methane ($\mu$mol)")
+ax_anme.yaxis.set_minor_locator(AutoMinorLocator(5))
+ax_anme.xaxis.set_minor_locator(AutoMinorLocator(5))
 
 # =============================================================================
 # End incorporated fig0 uncertainty plotting block
@@ -549,7 +558,4 @@ if mask["save_fig"]==1:
     fig8.savefig("D2_f.pdf", bbox_inches='tight')
     con_nc10.savefig("con_nc10.pdf", bbox_inches='tight')
     con_anme.savefig("con_anme.pdf", bbox_inches='tight')
-    con_nc10_anme.savefig("con_nc10_anme.pdf", bbox_inches='tight')
-    con_oct.savefig("con_oct.pdf", bbox_inches='tight')
-    con_bes.savefig("con_bes.pdf", bbox_inches='tight')
 
