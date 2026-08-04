@@ -168,11 +168,11 @@ rev_tr=0.99
 # Abundance of all relevant methane isotopologues 12CH4, 13CH4, 12CH3D, 13CH3D, 12CH2D2
 # The abundance of tank gas
 abundance=[
-    9.8883E-01,
-    1.0655E-02,
-    5.1189E-04,
-    5.5330E-06,
-    1.0007E-07
+    0.9895430920,
+    0.01006760015,
+    3.85339203*10**-4,
+    3.91444488*10**-6,
+    5.42236786*10**-8
 ]
 
 # Species index map:

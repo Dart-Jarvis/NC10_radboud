@@ -9,13 +9,13 @@ from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 output=False # True if you want to save the plots as pdf
 ff="ab initio" # Select the KIEs in the model: 
 model="no INT"
-F420=True # Direct equilibirum with water
-os=False
-rev1_list=[0.0,0.3,0.5,0.7,0.96] # First-step reversibility list, CH4 <-> CH3-SCoM; each value ranges from 0 to <1
-rev2_list=[0.0,0.99,0.8,0.65,0.999] # Second-step reversibility list, CH3-SCoM <-> CHO-MFR; each value ranges from 0 to <1
-rev3_list=[0.0,0.0,0.5,0.95,0.999] # Third-step reversibility list, CHO-MFR <-> CO2; each value ranges from 0 to <1
+F420=True # equilibirum with F420. Direct equilibrium with water is set at False
+os=True
+rev1_list=[0.0,0.4,0.5,0.6,0.8] # First-step reversibility list, CH4 <-> CH3-SCoM; each value ranges from 0 to <1
+rev2_list=[0.0,0.99,0.8,0.8,0.8] # Second-step reversibility list, CH3-SCoM <-> CHO-MFR; each value ranges from 0 to <1
+rev3_list=[0.0,0.3,0.5,0.6,0.8] # Third-step reversibility list, CHO-MFR <-> CO2; each value ranges from 0 to <1
 t_lower=0.000 # minimum time for time interval
-time_list=[35.0,50.0,70.0,100.0,500.0] # Maximum time for time interval, relevant to the final fraction of methane left
+time_list=[35.0,50.0,70.0,90.0,70.0] # Maximum time for time interval, relevant to the final fraction of methane left
 num=100000 # Number of tim steps
 # "experiment": data from Scheller et al., 2013;
 # "Ab initio": ab initio calculation in this study
@@ -28,7 +28,7 @@ FH2O=RH2O/(1+RH2O) # D/(D+H) ratio in water
 R13C_DIC=RVPDB*(d13C_DIC/1000+1)
 F13C_DIC=R13C_DIC/(1+R13C_DIC)
 # For open system, define a phi value, phi=Jnet/Jadvin (net oxidation rate/advection in rate)  
-phi=0.5
+phi=0.75
 #-------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------
 # Equlibrium isotope effect of the first step, from Gropp et al., 2021 (50 degree C)
@@ -176,14 +176,30 @@ rev_tr=0.99
 
 # Set up initial conditions
 # Abundance of all relevant methane isotopologues 12CH4, 13CH4, 12CH3D, 13CH3D, 12CH2D2
-# The abundance of tank gas
 abundance=[
-    9.8915E-01,
-    1.0429E-02,
-    4.1201E-04,
-    4.3591E-06,
-    6.2865E-08
+    9.89089799e-01, 
+    1.05053242e-02, 
+    4.00577619e-04, 
+    4.24165463e-06,
+    5.78643181e-08
 ]
+
+# Typical freshwater methanogenesis
+# abundance=[
+#     9.89214661e-01, 
+#     1.03960311e-02, 
+#     3.85195116e-04, 
+#     4.05835145e-06,
+#     5.43142016e-08
+# ]
+# The abundance of hydrogenotrophic methanogenesis by M barkeri
+# abundance=[
+#     9.89445854e-01, 
+#     1.02657303e-02, 
+#     2.85430170e-04, 
+#     2.95541119e-06,
+#     3.05685049e-08
+# ]
 
 # Species index map:
 # 0:5   intracellular CH4 isotopologues: 12CH4, 13CH4, 12CH3D, 13CH3D, 12CH2D2
@@ -576,98 +592,33 @@ def make_label():
         labellist[str(i)]=r"R$_1$="+str(rev1_list[i])+r", R$_2$="+str(rev2_list[i])+r", R$_3$="+str(rev3_list[i])
     return labellist
 
-normC=normalize_dat(d13C)
-normD=normalize_dat(dD)
-normCD=normalize_clumped_dat(D13CH3D)
-normDD=normalize_clumped_dat(D12CH2D2)
+Data_to_fit1=[-62.75,-336.78,16.48,-26.06]
+Data_to_fit2=[-63.05,-336.94,6.01,-26.08]
 
-fig_bulk0,ax_bulk0=plt.subplots(figsize=(12,12))
-ax_bulk0.plot(normC[0,:],normD[0,:], linewidth=2.5, color="black", linestyle="-.", alpha=1.0, label="Model, R1="+str(rev1_list[0])+", R2="+str(rev2_list[0])+", R3="+str(rev3_list[0]),zorder=1)
-ax_bulk0.plot(normC[1,:],normD[1,:], linewidth=2.5, linestyle=":", color="purple", alpha=1.0,label="Model, R1="+str(rev1_list[1])+", R2="+str(rev2_list[1])+", R3="+str(rev3_list[1]),zorder=1)
-ax_bulk0.plot(normC[2,:],normD[2,:], linewidth=2.5, linestyle="--", color="blue", alpha=1.0,label="Model, R1="+str(rev1_list[2])+", R2="+str(rev2_list[2])+", R3="+str(rev3_list[2]),zorder=1)
-ax_bulk0.plot(normC[3,:],normD[3,:], linewidth=2.5, linestyle=(5,(10,3)), color="orange", alpha=1.0, label="Model, R1="+str(rev1_list[3])+", R2="+str(rev2_list[3])+", R3="+str(rev3_list[3]), zorder=1)
-ax_bulk0.plot(normC[4,:],normD[4,:], linewidth=2.5, color="red", alpha=1.0, label="Model, R1="+str(rev1_list[4])+", R2="+str(rev2_list[4])+", R3="+str(rev3_list[4]), zorder=1)
-ax_bulk0.errorbar(ANME2d["ln(c/c0)"],ANME2d["ln(d/d0)"],xerr=ANME2d["lncse"],yerr=ANME2d["lndse"], markersize=12,label=r'N-AOM (this study)', fmt='o', 
-        markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-ax_bulk0.errorbar(AOM_P["ln(c/c0)"],AOM_P["ln(d/d0)"],xerr=AOM_P["lncse"],yerr=AOM_P["lndse"], markersize=12,label=r'S-AOM (Liu et al.)', fmt='s', 
-        markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-ax_bulk0.errorbar(AOM_ono["ln(c/c0)"],AOM_ono["ln(d/d0)"],xerr=AOM_ono["lncse"],yerr=AOM_ono["lndse"], markersize=12,label=r'S-AOM (Ono et al.)', fmt='^', 
-        markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-ax_bulk0.errorbar(AOM_wegener["ln(c/c0)"],AOM_wegener["ln(d/d0)"],xerr=AOM_wegener["lncse"],yerr=AOM_wegener["lndse"], markersize=12,label=r'S-AOM (Wegener et al.)', fmt='v', 
-        markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-set_axis(ax_bulk0,r'ln$\frac{\delta^{13}{\rm C}+1000}{\delta^{13}{\rm C}_{\rm init}+1000}$',r'ln$\frac{\delta{\rm D}+1000}{\delta{\rm D}_{\rm init}+1000}$')
-ax_bulk0.set_xlim([-0.02,0.06])
-ax_bulk0.set_ylim([-0.02,0.25])
-ax_bulk0.xaxis.set_minor_locator(MultipleLocator(0.004))
-ax_bulk0.yaxis.set_minor_locator(MultipleLocator(0.01))
-ax_bulk0.legend(fontsize=16)
+fig_bulk,ax_bulk=plt.subplots(figsize=(12,12))
+ax_bulk.scatter(Data_to_fit1[0],Data_to_fit1[1], s=80)
+ax_bulk.scatter(Data_to_fit2[0],Data_to_fit2[1], s=80)
+ax_bulk.plot(d13C[0,:],dD[0,:], linewidth=2.5, color="black", linestyle="-.", alpha=1.0, label="Model, R1="+str(rev1_list[0])+", R2="+str(rev2_list[0])+", R3="+str(rev3_list[0]),zorder=1)
+ax_bulk.plot(d13C[1,:],dD[1,:], linewidth=2.5, linestyle=":", color="purple", alpha=1.0,label="Model, R1="+str(rev1_list[1])+", R2="+str(rev2_list[1])+", R3="+str(rev3_list[1]),zorder=1)
+ax_bulk.plot(d13C[2,:],dD[2,:], linewidth=2.5, linestyle="--", color="blue", alpha=1.0,label="Model, R1="+str(rev1_list[2])+", R2="+str(rev2_list[2])+", R3="+str(rev3_list[2]),zorder=1)
+ax_bulk.plot(d13C[3,:],dD[3,:], linewidth=2.5, linestyle=(5,(10,3)), color="orange", alpha=1.0, label="Model, R1="+str(rev1_list[3])+", R2="+str(rev2_list[3])+", R3="+str(rev3_list[3]), zorder=1)
+ax_bulk.plot(d13C[4,:],dD[4,:], linewidth=2.5, color="red", alpha=1.0, label="Model, R1="+str(rev1_list[4])+", R2="+str(rev2_list[4])+", R3="+str(rev3_list[4]), zorder=1)
 
-fig_clump0,ax_clump0=plt.subplots(figsize=(12,12))
-ax_clump0.plot(normCD[0,:],normDD[0,:], linewidth=2.5, color="black", linestyle="-.", alpha=1.0, label="Model, R1="+str(rev1_list[0])+", R2="+str(rev2_list[0])+", R3="+str(rev3_list[0]),zorder=1)
-ax_clump0.plot(normCD[1,:],normDD[1,:], linewidth=2.5, linestyle=":", color="purple", alpha=1.0,label="Model, R1="+str(rev1_list[1])+", R2="+str(rev2_list[1])+", R3="+str(rev3_list[1]),zorder=1)
-ax_clump0.plot(normCD[2,:],normDD[2,:], linewidth=2.5, linestyle="--", color="blue", alpha=1.0,label="Model, R1="+str(rev1_list[2])+", R2="+str(rev2_list[2])+", R3="+str(rev3_list[2]),zorder=1)
-ax_clump0.plot(normCD[3,:],normDD[3,:], linewidth=2.5, linestyle=(5,(10,3)), color="orange", alpha=1.0, label="Model, R1="+str(rev1_list[3])+", R2="+str(rev2_list[3])+", R3="+str(rev3_list[3]), zorder=1)
-ax_clump0.plot(normCD[4,:],normDD[4,:], linewidth=2.5, color="red", alpha=1.0, label="Model, R1="+str(rev1_list[4])+", R2="+str(rev2_list[4])+", R3="+str(rev3_list[4]), zorder=1)
-ax_clump0.errorbar(ANME2d["DeltaCD"],ANME2d["DeltaDD"],xerr=None,yerr=None, markersize=18,label=r'N-AOM (this study)', fmt='o', 
-        markerfacecolor='yellow', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=2)
-ax_clump0.errorbar(AOM_P["DeltaCD"],AOM_P["DeltaDD"],xerr=None,yerr=None, markersize=12,label=r'S-AOM (Liu et al.)', fmt='s', 
-        markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-ax_clump0.errorbar(AeOM_P["DeltaCD"],AeOM_P["DeltaDD"],xerr=None,yerr=None, markersize=12,label=r'AeOM', fmt='o', 
-        markerfacecolor='white', markeredgecolor='black',markeredgewidth=2.5, ecolor='black', elinewidth=2.5, zorder=-1)
-set_axis(ax_clump0,r'$\Delta \Delta^{13}$CH$_3$D'+'(\u2030)',r'$\Delta \Delta^{12}$CH$_2$D$_2$'+'(\u2030)')
-ax_clump0.set_xlim([-15,20])
-ax_clump0.set_ylim([-60,60])
-ax_clump0.xaxis.set_minor_locator(MultipleLocator(2))
-ax_clump0.yaxis.set_minor_locator(MultipleLocator(4))
-ax_clump0.legend(fontsize=16)
+set_axis(ax_bulk,'$\delta^{13}$C (\u2030)','$\delta$D (\u2030)')
+ax_bulk.legend(fontsize=15)
 
+fig_clump,ax_clump=plt.subplots(figsize=(12,12))
+ax_clump.plot(equib['D13CH3D'],equib['D12CH2D2'],'-k', label = 'Equilibrium', linewidth = 2.5, markersize = 15)
+for i in range(len(equib)):
+    if equib['p'].iloc[i]==1:
+        ax_clump.scatter(equib['D13CH3D'].iloc[i], equib['D12CH2D2'].iloc[i],color='black',s=60)
 
-fig_f1,ax_f1=plt.subplots(figsize=(12,6))
-fig_f2,ax_f2=plt.subplots(figsize=(12,6))
-fig_f3,ax_f3=plt.subplots(figsize=(12,6))
-fig_f4,ax_f4=plt.subplots(figsize=(12,6))
-llist=make_label()
-
-def plotf_norm(x,n,ne,ax):
-    ax.plot(fCH4[0,:],x[0,:],linewidth=2.5,linestyle=":", color="purple",label=llist["0"])
-    ax.plot(fCH4[1,:],x[1,:],linewidth=2.5,linestyle="-",color="blue",label=llist["1"])
-    ax.plot(fCH4[2,:],x[2,:],linewidth=2.5,linestyle="--",color="black",label=llist["2"])
-    ax.plot(fCH4[3,:],x[3,:],linewidth=2.5,linestyle="--",color="orange",label=llist["3"])
-    ax.plot(fCH4[4,:],x[4,:],linewidth=2.5,linestyle="-.",color="green",label=llist["4"])
-    ax.errorbar(ANME2d["f"],ANME2d[n],xerr=ANME2d["fse"],yerr=ANME2d[ne],markerfacecolor="blue",
-               markersize=14,fmt="o",markeredgecolor="black",markeredgewidth=2.5, label="ANME (N-AOM)")
-    ax.errorbar(Oct["f"],Oct[n],xerr=Oct["fse"],yerr=Oct[ne],markerfacecolor="red",
-               markersize=14,fmt="D",markeredgecolor="black",markeredgewidth=2.5, label="NC10+ANME+Oct")
-    ax.errorbar(AOM_P["f"],AOM_P[n],xerr=AOM_P["fse"],yerr=AOM_P[ne],markerfacecolor="orange",
-               markersize=14,fmt="s",markeredgecolor="black",markeredgewidth=2.5, label="S-AOM (high sulfate, Liu et al)")
-    ax.errorbar(AOM_wegener["f"],AOM_wegener[n],xerr=AOM_wegener["fse"],yerr=AOM_wegener[ne],markerfacecolor="white",
-               markersize=14,fmt="^",markeredgecolor="black",markeredgewidth=2.5, label="S-AOM (high sulfate, Wegener et al)")
-    ax.errorbar(AOM_ono["f"],AOM_ono[n],xerr=AOM_ono["fse"],yerr=AOM_ono[ne],markerfacecolor="white",
-               markersize=14,fmt="v",markeredgecolor="black",markeredgewidth=2.5, label="S-AOM (high sulfate, Ono et al)")
-    ax.invert_xaxis()
-    ax.set_xlim([1.05,0.0])
-    ax.xaxis.set_minor_locator(AutoMinorLocator(5))    
-    ax.yaxis.set_minor_locator(AutoMinorLocator(5))
-
-plotf_norm(normC,"ln(c/c0)","lncse",ax_f1)
-set_axis(ax_f1,r"Residual methane fraction, f",r'ln$\frac{\delta^{13}{\rm C}+1000}{\delta^{13}{\rm C}_{\rm init}+1000}$')
-# ax_f1.set_ylim([-0.03,0.06])
-plotf_norm(normD,"ln(d/d0)","lndse",ax_f2)
-set_axis(ax_f2,r"Residual methane fraction, f",r'ln$\frac{\delta{\rm D}+1000}{\delta{\rm D}_{\rm init}+1000}$')
-# ax_f2.set_ylim([-0.02,0.24])
-plotf_norm(normCD,"DeltaCD","se",ax_f3)
-set_axis(ax_f3,r"Residual methane fraction, f",r'$\Delta \Delta^{13}$CH$_3$D'+'(\u2030)')
-# ax_f3.set_ylim([-10,15])
-plotf_norm(normDD,"DeltaDD","se",ax_f4)
-set_axis(ax_f4,r"Residual methane fraction, f",r'$\Delta \Delta^{12}$CH$_2$D$_2$'+'(\u2030)')
-# ax_f4.set_ylim([-50,50])
-ax_f2.legend(fontsize=18)
+ax_clump.scatter(Data_to_fit1[2],Data_to_fit1[3], s=80)
+ax_clump.scatter(Data_to_fit2[2],Data_to_fit2[3], s=80)
+ax_clump.plot(D13CH3D[0,:],D12CH2D2[0,:], linewidth=2.5, color="black",linestyle="-.",alpha=1.0,zorder=1)
+ax_clump.plot(D13CH3D[1,:],D12CH2D2[1,:], linewidth=2.5, linestyle=":", color="purple", alpha=1.0,zorder=1)
+ax_clump.plot(D13CH3D[2,:],D12CH2D2[2,:], linewidth=2.5, linestyle="--", color="blue", alpha=1.0,zorder=1)
+ax_clump.plot(D13CH3D[3,:],D12CH2D2[3,:], linewidth=2.5, linestyle=(5,(10,3)),color="orange", alpha=1.0,zorder=1)
+ax_clump.plot(D13CH3D[4,:],D12CH2D2[4,:], linewidth=2.5, color="red", alpha=1.0,zorder=1)
 
 plt.show()
-if output==True:
-    fig_bulk.savefig("bulk_model.pdf",bbox_inches="tight")
-    fig_clump.savefig("clump_model.pdf",bbox_inches="tight")
-    fig_f1.savefig("model_f1.pdf",bbox_inches="tight")
-    fig_f2.savefig("model_f2.pdf",bbox_inches="tight")
-    fig_f3.savefig("model_f3.pdf",bbox_inches="tight")
-    fig_f4.savefig("model_f4.pdf",bbox_inches="tight")
