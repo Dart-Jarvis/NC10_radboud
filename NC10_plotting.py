@@ -156,7 +156,8 @@ alphas={
     "Cl": alpha_raw[alpha_raw['Label']=="Cl"],
     "red_mass": alpha_raw[alpha_raw['Label']=="red_mass"],
     "Ab initio (sMMO)": alpha_raw[alpha_raw['Label']=="sMMO"],
-    "Ab initio (MCR)":alpha_raw[alpha_raw['Label']=="MCR"]
+    "Ab initio (MCR)":alpha_raw[alpha_raw['Label']=="MCR"],
+    "Ab initio (pMMO)":alpha_raw[alpha_raw['Label']=="pMMO"]
 }
 
 
@@ -208,6 +209,7 @@ maskf={
     "red_mass":0,
     "Ab initio (sMMO)": 1,
     "Ab initio (MCR)": 0,
+    "Ab initio (pMMO)":1
 }
 
 def plot_isotopef(ax,x,y,xerr,yerr,msk):
@@ -280,7 +282,8 @@ color_dict={
     "Cl":["gray","^",-2],
     "red_mass":["gray","v",-1],
     "Ab initio (sMMO)":["red","^",2],
-    "Ab initio (MCR)":["black","o",2]
+    "Ab initio (MCR)":["black","o",2],
+    "Ab initio (pMMO)":["gray","^",2]
 }
 
 fig3,ax3=plt.subplots(figsize=(8,8))
@@ -312,6 +315,7 @@ maskf={
     "red_mass":0,
     "Ab initio (sMMO)": 0,
     "Ab initio (MCR)": 1,
+    "Ab initio (pMMO)":0
 }
 fig4,ax4=plt.subplots(figsize=(8,8))
 for key in alphas.keys():
@@ -422,41 +426,91 @@ ax8.xaxis.set_minor_locator(MultipleLocator(0.1))
 ax8.yaxis.set_minor_locator(MultipleLocator(2))
 
 # Plot the methane oxidation rates with different experimental conditions
-raw_rate=pd.read_csv("methanotrophy_rate.csv")
+raw_rate = pd.read_csv("methanotrophy_rate.csv")
 rate_data = {
     "NC10": raw_rate["NC10"],
-    'NC10+ANME': raw_rate["NC10+ANME"],
-    "ANME":raw_rate["ANME"],
-    'NC10+ANME+Oct': raw_rate["NC10+ANME+Oct"],
-    'NC10+ANME+BES': raw_rate["NC10+ANME+BES"]
+    "NC10+ANME": raw_rate["NC10+ANME"],
+    "ANME": raw_rate["ANME"],
+    "NC10+ANME+Oct": raw_rate["NC10+ANME+Oct"],
+    "NC10+ANME+BES": raw_rate["NC10+ANME+BES"]
 }
 
-# Compute means and standard deviations
-groups = list(rate_data.keys())
-means = [np.mean(rate_data[g]) for g in groups]
-stds = [np.std(rate_data[g]) for g in groups]
-
-# Plot bar chart with error bars
-plt.figure(figsize=(12, 5))
-plt.bar(groups, means, yerr=stds, capsize=5, color='lightcoral', edgecolor='black')
-plt.ylabel(r'Methanotrophy rate ($\mu$mol/day/g dw)', fontsize=16)
-plt.xticks(fontsize=15)
-plt.yticks(fontsize=15)
-plt.grid(axis='y', linestyle='--', alpha=0.5)
-plt.tight_layout()
-plt.savefig("rate_all.pdf")
-plt.show()
+# Use the same hollow-marker edge colors and marker types as Figure 1
+rate_style = {
+    "NC10": {"color": "red", "marker": "o"},
+    "NC10+ANME": {"color": "blue", "marker": "^"},
+    "ANME": {"color": "black", "marker": "s"},
+    "NC10+ANME+Oct": {"color": "black", "marker": "D"},
+    "NC10+ANME+BES": {"color": "red", "marker": "v"}
+}
 
 
-plt.figure(figsize=(12, 5))
-plt.bar(groups[1:], means[1:], yerr=stds[1:], capsize=5, color='lightcoral', edgecolor='black')
-plt.ylabel(r'Methanotrophy rate ($\mu$mol/day/g dw)', fontsize=16)
-plt.xticks(fontsize=15)
-plt.yticks(fontsize=15)
-plt.grid(axis='y', linestyle='--', alpha=0.5)
-plt.tight_layout()
-plt.savefig("rate_zoom.pdf")
-plt.show()
+def plot_rate_groups(groups_to_plot, outfile):
+    fig, ax = plt.subplots(figsize=(12, 5))
+
+    for i, group in enumerate(groups_to_plot):
+        # Convert to numeric and ignore empty/NaN cells in each group
+        vals = pd.to_numeric(rate_data[group], errors="coerce").dropna().to_numpy()
+        if len(vals) == 0:
+            continue
+
+        color = rate_style[group]["color"]
+        marker = rate_style[group]["marker"]
+
+        # Plot all replicates at the same x-position for each experimental group
+        xvals = np.full(len(vals), i, dtype=float)
+
+        # Plot all individual rate measurements
+        ax.scatter(
+            xvals, vals,
+            s=85,
+            marker=marker,
+            facecolors="none",
+            edgecolors=color,
+            linewidths=2.0,
+            zorder=3
+        )
+
+        # Plot the group average as a gray star with a standard-deviation error bar
+        mean_val = np.mean(vals)
+        std_val = np.std(vals) if len(vals) > 1 else 0.0
+        ax.errorbar(
+            i, mean_val,
+            yerr=std_val,
+            fmt="*",
+            markersize=20,
+            markerfacecolor="gray",
+            markeredgecolor="black",
+            markeredgewidth=1.5,
+            ecolor="black",
+            elinewidth=2.5,
+            capsize=6,
+            capthick=2.0,
+            zorder=4
+        )
+
+    ax.set_xticks(range(len(groups_to_plot)))
+    ax.set_xticklabels(groups_to_plot, fontsize=15)
+    ax.set_ylabel(r'Methanotrophy rate ($\mu$mol/day/g dw)', fontsize=16)
+    ax.tick_params(axis='y', labelsize=15)
+    ax.grid(axis='y', linestyle='--', alpha=0.5)
+    ax.set_xlim(-0.5, len(groups_to_plot) - 0.5)
+    plt.tight_layout()
+    plt.savefig(outfile)
+    plt.show()
+
+
+# All experimental groups
+plot_rate_groups(
+    ["NC10", "NC10+ANME", "ANME", "NC10+ANME+Oct", "NC10+ANME+BES"],
+    "rate_all.pdf"
+)
+
+# Zoomed plot excluding NC10, as in the original script
+plot_rate_groups(
+    ["NC10+ANME", "ANME", "NC10+ANME+Oct", "NC10+ANME+BES"],
+    "rate_zoom.pdf"
+)
 
 # Methane consumption curves
 consumption=pd.read_csv("methane oxidation curve.csv",header=None)

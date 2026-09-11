@@ -1,2 +1,0 @@
-ANME2d_rev1,ANME2d_rev2,ANME2d_rev3,AOM_P_rev1,AOM_P_rev2,AOM_P_rev3,gammaCDff2,gammaDDff2,scaled_ss,scaled_rmse,n_residuals,n_parameters,dof,reduced_scaled_ss,optimizer_source,exclude_initial,ngrid,tmax_safety_cap,f_margin
-0.39274734624737806,0.99,0.058678635460689486,0.786428637091765,0.5680767932713788,0.3155802781255608,0.9797677186890337,0.9205034653459517,1.477007460884165,0.18321532930091516,44,8,36,0.04102798502456014,differential_evolution + L-BFGS-B,True,500,500.0,0.005
